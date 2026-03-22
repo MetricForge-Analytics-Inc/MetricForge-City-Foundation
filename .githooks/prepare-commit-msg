@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Skip for merge commits, amend, and squash
+case "$2" in
+  merge|squash) exit 0 ;;
+esac
+
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+# Skip if detached HEAD or branch already in message
+if [ -z "$BRANCH" ]; then
+  exit 0
+fi
+
+# Prepend branch name to first line
+if ! grep -q "^$BRANCH " "$1"; then
+  sed -i "1s/^/$BRANCH /" "$1"
+fi

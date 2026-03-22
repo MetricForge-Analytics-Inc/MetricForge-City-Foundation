@@ -1,0 +1,29 @@
+# ── Evidence ──────────────────────────────────────────────────────────
+.evidence/template
+.evidence/meta
+.svelte-kit
+.cache
+build
+node_modules
+static/data
+
+# ── Python ────────────────────────────────────────────────────────────
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+.env
+
+# ── DuckDB / MotherDuck ──────────────────────────────────────────────
+*.duckdb
+*.wal
+
+# ── SQLMesh local state ──────────────────────────────────────────────
+.sqlmesh/user.yaml
+
+# ── Logs ──────────────────────────────────────────────────────────────
+logs/
+
+# ── OS / IDE ──────────────────────────────────────────────────────────
+.DS_Store
+secrets.toml
+nohup.out

@@ -1,0 +1,46 @@
+test_tickets_details_passthrough:
+  model: Foundry.support.tickets_details_view
+  inputs:
+    Foundry.support.tickets_integration_view:
+      rows:
+        - case_id: 1
+          channel: email
+          case_created_time: "2024-01-15 10:00:00"
+          case_last_updated_time: "2024-01-15 12:00:00"
+          case_type: incident
+          case_topic: null
+          case_subject: "Test ticket"
+          case_description: "Test description"
+          case_priority: normal
+          case_current_status: open
+          case_has_incidents: false
+          case_is_public: true
+          case_satisfaction_rating: unoffered
+          case_tags: "['test']"
+          case_organization_id: 100
+          case_assigned_group_stations: 1
+          case_assignee_stations: 1
+          case_number_of_reopens: 0
+          case_number_of_replies: 2
+          case_requester_last_updated_time: "2024-01-15 10:30:00"
+          case_status_last_updated_time: "2024-01-15 11:00:00"
+          case_latest_comment_added_time: "2024-01-15 11:30:00"
+          case_on_hold_minutes_calendar: 0
+          case_on_hold_minutes_business: 0
+          case_custom_status_updated_time: null
+          case_assignee_last_updated_time: "2024-01-15 10:15:00"
+          case_initial_assignment_time: "2024-01-15 10:05:00"
+          case_last_assignment_time: "2024-01-15 10:05:00"
+          case_reply_time_in_minutes_calendar: 30
+          case_reply_time_in_minutes_business: 25
+          requester: null
+          submitter: null
+          assignee: null
+  outputs:
+    query:
+      rows:
+        - case_id: 1
+          channel: email
+          case_current_status: open
+          case_number_of_replies: 2
+  
