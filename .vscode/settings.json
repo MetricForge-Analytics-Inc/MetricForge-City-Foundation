@@ -8,7 +8,8 @@
         "strings": false
     },
     "editor.quickSuggestionsDelay": 300,
-    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.defaultEnvManager": "ms-python.python:venv",
+    "python-envs.pythonProjects": [],
     "sqltools.useNodeRuntime": true,
     "sqltools.connections": [
         {
@@ -16,5 +17,11 @@
             "driver": "DuckDB",
             "database": "db/metricforge.duckdb"
         }
-    ]
+    ],
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.parquet": "duckdb.dataFileViewer",
+        "*.csv": "duckdb.dataFileViewer",
+        "*.tsv": "duckdb.dataFileViewer"
+    }
 }
