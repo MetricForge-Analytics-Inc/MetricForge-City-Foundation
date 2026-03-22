@@ -2,38 +2,31 @@ from sqlmesh import macro
 
 
 @macro()
-def permits_atomic_query(evaluator, table_type):
-    query_suffix = ""
-    if table_type == "table":
-        query_suffix = """
-    WHERE
-        COALESCE(permits.ISSUED_DATE, permits.APPLICATION_DATE, TIMESTAMP '2020-01-01')
-        BETWEEN @start_date AND @end_date
-        """
-
-    return f"""--sql
+def permits_atomic_query(evaluator):
+    """Extracts permit-specific attributes from the universal assets + events tables."""
+    return """--sql
     SELECT
-        permits.OBJECTID              AS permit_id,
-        permits.PERMIT_NUMBER         AS permit_number,
-        permits.PERMIT_TYPE           AS permit_type,
-        permits.PERMIT_STATUS         AS permit_status,
-        permits.WORK_TYPE             AS work_type,
-        permits.DESCRIPTION           AS permit_description,
-        permits.APPLICATION_DATE      AS application_date,
-        permits.ISSUED_DATE           AS issued_date,
-        permits.COMPLETED_DATE        AS completed_date,
-        permits.ESTIMATED_VALUE       AS estimated_value,
-        permits.ACTUAL_VALUE          AS actual_value,
-        permits.ADDRESS               AS address,
-        permits.WARD                  AS ward,
-        permits.NEIGHBOURHOOD         AS neighbourhood,
-        permits.CreatedDate           AS created_time,
-        permits.EditDate              AS last_updated_time,
-        COALESCE(permits.ISSUED_DATE, permits.APPLICATION_DATE, TIMESTAMP '2020-01-01')
-                                      AS record_time
-    FROM
-        Foundry.normalized_opendata_extract.building_permits AS permits
-    {query_suffix}
+        a.source_system_id                                                               AS permit_id,
+        json_extract_string(e.payload, '$.permit_number')                                AS permit_number,
+        json_extract_string(e.payload, '$.permit_type')                                  AS permit_type,
+        json_extract_string(e.payload, '$.permit_status')                                AS permit_status,
+        json_extract_string(e.payload, '$.work_type')                                    AS work_type,
+        json_extract_string(e.payload, '$.sub_work_type')                                AS sub_work_type,
+        json_extract_string(e.payload, '$.description')                                  AS permit_description,
+        TRY_CAST(json_extract_string(e.payload, '$.construction_value') AS DOUBLE)       AS construction_value,
+        TRY_CAST(json_extract_string(e.payload, '$.total_units') AS INTEGER)             AS total_units,
+        TRY_CAST(json_extract_string(e.payload, '$.units_created') AS INTEGER)           AS units_created,
+        TRY_CAST(json_extract_string(e.payload, '$.units_lost') AS INTEGER)              AS units_lost,
+        json_extract_string(e.payload, '$.folder_name')                                  AS address,
+        TRY_CAST(json_extract_string(e.payload, '$.issue_year') AS INTEGER)              AS issue_year,
+        a.created_at                                                                     AS application_date,
+        a.updated_at                                                                     AS issued_date,
+        a.record_time
+    FROM city.assets_view AS a
+    JOIN city.events_view AS e
+        ON a.asset_id = e.asset_id
+    WHERE a.asset_type = 'permit'
+      AND e.event_type = 'permit_issued'
     """
 
 

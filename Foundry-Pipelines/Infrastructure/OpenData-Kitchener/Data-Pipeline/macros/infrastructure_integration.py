@@ -2,69 +2,54 @@ from sqlmesh import macro
 
 
 @macro()
-def infrastructure_integration_query(evaluator, table_type):
+def infrastructure_integration_query(evaluator):
     """
     Joins roads and water mains by ward to create a cross-departmental
     infrastructure view — the first step toward coordinated planning.
+    Queries from the universal-schema-backed analytical views.
     """
-    query_suffix = ""
-    if table_type == "table":
-        query_suffix = """
-    WHERE
-        roads.record_time BETWEEN @start_date AND @end_date
-        """
-
-    return f"""--sql
+    return """--sql
     SELECT
         roads.road_id,
         roads.road_name,
         roads.road_classification,
         roads.surface_type,
-        roads.surface_condition,
+        roads.category,
+        roads.subcategory,
         roads.number_of_lanes,
         roads.speed_limit_kmh,
-        roads.segment_length_m   AS road_length_m,
+        roads.pavement_width_m,
         roads.ownership          AS road_ownership,
-        roads.maintenance_responsibility,
-        roads.ward,
+        roads.road_status,
+        roads.ward_id,
         roads.record_time,
 
         -- Ward context (cross-departmental join)
         wards.ward_name,
         wards.councillor,
-        wards.area_sq_km         AS ward_area_sq_km,
         wards.population         AS ward_population,
+        wards.residential_households AS ward_households,
 
-        -- Water infrastructure in same ward (aggregated)
+        -- Water infrastructure count (no ward on water_mains so count all)
         water_agg.total_water_mains,
-        water_agg.avg_pipe_diameter_mm,
-        water_agg.oldest_install_year,
-        water_agg.total_water_length_m
+        water_agg.distinct_materials
 
     FROM
-        Foundry.city.roads_atomic_{table_type} AS roads
+        city.roads_atomic_view AS roads
 
     LEFT JOIN
-        Foundry.city.boundaries_atomic_{table_type} AS wards
+        city.boundaries_atomic_view AS wards
     ON
-        roads.ward = wards.ward_number
+        roads.ward_id = wards.ward_number
 
     LEFT JOIN (
         SELECT
-            ward,
-            COUNT(*)                   AS total_water_mains,
-            ROUND(AVG(diameter_mm), 1) AS avg_pipe_diameter_mm,
-            MIN(install_year)          AS oldest_install_year,
-            SUM(segment_length_m)      AS total_water_length_m
+            COUNT(*)                            AS total_water_mains,
+            COUNT(DISTINCT pipe_material)       AS distinct_materials
         FROM
-            Foundry.city.water_mains_atomic_{table_type}
-        GROUP BY
-            ward
+            city.water_mains_atomic_view
     ) AS water_agg
-    ON
-        roads.ward = water_agg.ward
-
-    {query_suffix}
+    ON TRUE
     """
 
 

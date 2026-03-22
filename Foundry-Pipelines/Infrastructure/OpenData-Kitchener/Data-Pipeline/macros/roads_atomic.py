@@ -2,35 +2,30 @@ from sqlmesh import macro
 
 
 @macro()
-def roads_atomic_query(evaluator, table_type):
-    query_suffix = ""
-    if table_type == "table":
-        query_suffix = """
-    WHERE
-        COALESCE(roads.EditDate, roads.CreatedDate, TIMESTAMP '2020-01-01')
-        BETWEEN @start_date AND @end_date
-        """
-
-    return f"""--sql
+def roads_atomic_query(evaluator):
+    """Extracts road-specific attributes from the universal assets + events tables."""
+    return """--sql
     SELECT
-        roads.OBJECTID             AS road_id,
-        roads.ROAD_NAME            AS road_name,
-        roads.ROAD_CLASS           AS road_classification,
-        roads.SURFACE_TYPE         AS surface_type,
-        roads.SURFACE_COND         AS surface_condition,
-        roads.NUM_LANES            AS number_of_lanes,
-        roads.SPEED_LIMIT          AS speed_limit_kmh,
-        roads.LENGTH_M             AS segment_length_m,
-        roads.OWNERSHIP            AS ownership,
-        roads.MAINT_RESP           AS maintenance_responsibility,
-        roads.WARD                 AS ward,
-        roads.CreatedDate          AS created_time,
-        roads.EditDate             AS last_updated_time,
-        COALESCE(roads.EditDate, roads.CreatedDate, TIMESTAMP '2020-01-01')
-                                   AS record_time
-    FROM
-        Foundry.normalized_opendata_extract.road_segments AS roads
-    {query_suffix}
+        CAST(a.source_system_id AS INTEGER)                                    AS road_id,
+        json_extract_string(e.payload, '$.street')                             AS road_name,
+        json_extract_string(e.payload, '$.carto_class')                        AS road_classification,
+        json_extract_string(e.payload, '$.surface_type')                       AS surface_type,
+        json_extract_string(e.payload, '$.category')                           AS category,
+        json_extract_string(e.payload, '$.subcategory')                        AS subcategory,
+        TRY_CAST(json_extract_string(e.payload, '$.lanes') AS INTEGER)         AS number_of_lanes,
+        TRY_CAST(json_extract_string(e.payload, '$.speed_limit_km') AS INTEGER) AS speed_limit_kmh,
+        TRY_CAST(json_extract_string(e.payload, '$.pavement_width') AS DOUBLE) AS pavement_width_m,
+        json_extract_string(e.payload, '$.ownership')                          AS ownership,
+        json_extract_string(e.payload, '$.status')                             AS road_status,
+        TRY_CAST(json_extract_string(e.payload, '$.ward_id') AS INTEGER)       AS ward_id,
+        a.created_at                                                           AS created_time,
+        a.updated_at                                                           AS last_updated_time,
+        a.record_time
+    FROM city.assets_view AS a
+    JOIN city.events_view AS e
+        ON a.asset_id = e.asset_id
+    WHERE a.asset_type = 'road'
+      AND e.event_subtype = 'road_segment'
     """
 
 

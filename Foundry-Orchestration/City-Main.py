@@ -41,16 +41,14 @@ def extract(theme: str, site: str) -> None:
 
 @task(name="sqlmesh-transform")
 def transform(theme: str, site: str) -> None:
-    """Run SQLMesh plan against prod with auto-apply."""
+    """Run SQLMesh plan against the local environment with auto-apply."""
     root = _workspace_root()
-    extract_path = root / "Foundry-Pipelines" / theme / site / "Data-Extract"
     pipeline_path = root / "Foundry-Pipelines" / theme / site / "Data-Pipeline"
     log_dir = root / "Foundry-Orchestration" / "logs"
     _run(
         f"sqlmesh --log-file-dir {log_dir}"
-        f" -p {extract_path} -p {pipeline_path}"
-        f" plan prod --auto-apply --no-prompts --skip-tests",
-        cwd=root,
+        f" plan local --auto-apply --no-prompts --skip-tests",
+        cwd=pipeline_path,
     )
 
 

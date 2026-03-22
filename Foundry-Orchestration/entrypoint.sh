@@ -3,6 +3,9 @@ set -o errexit   # abort on nonzero exitstatus
 set -o nounset   # abort on unbound variable
 set -o pipefail  # don't hide errors within pipes
 
+# Ensure the DuckDB directory exists
+mkdir -p /app/db
+
 POSTGRES_DATA_DIR="/postgres_data"
 POSTGRES_LOG="${POSTGRES_DATA_DIR}/log"
 

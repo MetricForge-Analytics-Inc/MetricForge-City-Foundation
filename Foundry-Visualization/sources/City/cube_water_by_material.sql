@@ -1,12 +1,10 @@
--- Water infrastructure by material and ward.
+-- Water infrastructure by material.
 
 SELECT
-  water_infrastructure.pipe_material  AS material,
-  water_infrastructure.ward           AS ward,
-  MEASURE(water_infrastructure.total_mains)        AS total_mains,
-  MEASURE(water_infrastructure.total_length_km)    AS length_km,
-  MEASURE(water_infrastructure.avg_diameter_mm)    AS avg_diameter_mm,
-  MEASURE(water_infrastructure.avg_pipe_age_years) AS avg_age_years,
-  MEASURE(water_infrastructure.oldest_install_year) AS oldest_year,
-  MEASURE(water_infrastructure.newest_install_year) AS newest_year
-GROUP BY 1, 2
+  pipe_material                       AS material,
+  pipe_status,
+  COUNT(*)                            AS total_mains,
+  ROUND(AVG(pipe_size), 1)            AS avg_pipe_size,
+  COUNT(DISTINCT pressure_zone)       AS pressure_zones
+FROM city.water_mains_atomic_view
+GROUP BY pipe_material, pipe_status

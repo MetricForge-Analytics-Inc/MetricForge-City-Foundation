@@ -27,6 +27,10 @@ COPY . .
 RUN python3 -m venv .venv && \
     .venv/bin/pip install -r Foundry-Orchestration/requirements.txt
 
+# Create directory for local DuckDB files
+RUN mkdir -p /app/db
+
+# PostgreSQL 18 for SQLMesh state management
 # based on https://www.postgresql.org/download/linux/ubuntu/
 RUN apt update && apt install -y postgresql-common && \
     apt install -y curl ca-certificates && \
@@ -38,7 +42,6 @@ RUN apt update && apt install -y postgresql-common && \
     apt install -y postgresql-18 && \
     mkdir /postgres_data && \
     chown postgres:postgres /postgres_data
-
 
 ENTRYPOINT ["/bin/bash", "/app/Foundry-Orchestration/entrypoint.sh"]
 

@@ -2,30 +2,23 @@ from sqlmesh import macro
 
 
 @macro()
-def boundaries_atomic_query(evaluator, table_type):
-    query_suffix = ""
-    if table_type == "table":
-        query_suffix = """
-    WHERE
-        COALESCE(wards.EditDate, wards.CreatedDate, TIMESTAMP '2020-01-01')
-        BETWEEN @start_date AND @end_date
-        """
-
-    return f"""--sql
+def boundaries_atomic_query(evaluator):
+    """Extracts ward-boundary attributes from the universal assets + events tables."""
+    return """--sql
     SELECT
-        wards.OBJECTID             AS ward_id,
-        wards.WARD_NUM             AS ward_number,
-        wards.WARD_NAME            AS ward_name,
-        wards.COUNCILLOR           AS councillor,
-        wards.AREA_SQ_KM           AS area_sq_km,
-        wards.POPULATION           AS population,
-        wards.CreatedDate          AS created_time,
-        wards.EditDate             AS last_updated_time,
-        COALESCE(wards.EditDate, wards.CreatedDate, TIMESTAMP '2020-01-01')
-                                   AS record_time
-    FROM
-        Foundry.normalized_opendata_extract.ward_boundaries AS wards
-    {query_suffix}
+        CAST(a.source_system_id AS INTEGER)                                           AS ward_id,
+        TRY_CAST(json_extract_string(e.payload, '$.ward_id') AS INTEGER)              AS ward_number,
+        json_extract_string(e.payload, '$.ward_name')                                 AS ward_name,
+        json_extract_string(e.payload, '$.councillor_name')                           AS councillor,
+        TRY_CAST(json_extract_string(e.payload, '$.residential_households') AS INTEGER) AS residential_households,
+        TRY_CAST(json_extract_string(e.payload, '$.mpac_population') AS INTEGER)      AS population,
+        TRY_CAST(json_extract_string(e.payload, '$.mpac_voters') AS INTEGER)          AS voters,
+        a.record_time
+    FROM city.assets_view AS a
+    JOIN city.events_view AS e
+        ON a.asset_id = e.asset_id
+    WHERE a.asset_type = 'zone'
+      AND e.event_subtype = 'ward_boundary'
     """
 
 

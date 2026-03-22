@@ -22,69 +22,52 @@ import requests
 DATASET_CATALOG: dict[str, dict[str, str]] = {
     # ── Infrastructure ──────────────────────────────────────────────
     "road_segments": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Road_Segments/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Roads/FeatureServer/0",
         "description": "Road network centrelines with classification, surface type, and condition.",
     },
     "bridges": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Bridges/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Bridge/FeatureServer/0",
         "description": "Bridge assets with structural condition and inspection data.",
     },
     "water_mains": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Water_Distribution_Mains/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Water_Mains/FeatureServer/0",
         "description": "Water distribution main pipes — material, diameter, install year.",
     },
     "sanitary_sewers": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Sanitary_Sewers/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Sanitary_Pipes/FeatureServer/0",
         "description": "Sanitary sewer lines — material, diameter, install year.",
     },
     "storm_sewers": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Storm_Sewers/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Storm_Pipes/FeatureServer/0",
         "description": "Storm sewer lines — material, diameter, install year.",
     },
     # ── Planning & Development ──────────────────────────────────────
     "building_permits": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Building_Permits/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Building_Permits/FeatureServer/0",
         "description": "Building permit applications with status, type, and value.",
-    },
-    "zoning": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Zoning/FeatureServer/0",
-        "description": "Zoning polygons — land use category, permitted densities.",
-    },
-    "official_plan_land_use": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Official_Plan_Land_Use/FeatureServer/0",
-        "description": "Official plan designations for land use across the city.",
     },
     # ── Boundaries & Geography ──────────────────────────────────────
     "ward_boundaries": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Ward_Boundaries/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Wards/FeatureServer/0",
         "description": "Electoral ward boundary polygons.",
     },
     "neighbourhood_boundaries": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Neighbourhood_Planning_Boundaries/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Neighbourhood_Association/FeatureServer/0",
         "description": "Neighbourhood planning area boundaries.",
     },
     # ── Parks & Environment ─────────────────────────────────────────
     "parks": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Parks/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Parks/FeatureServer/0",
         "description": "City parks — names, area, amenities.",
     },
     "tree_inventory": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Tree_Inventory/FeatureServer/0",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Tree_Inventory/FeatureServer/0",
         "description": "Street and park trees with species, diameter, condition.",
     },
-    # ── Transit ─────────────────────────────────────────────────────
-    "transit_routes": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/GRT_Routes/FeatureServer/0",
-        "description": "Grand River Transit route lines.",
-    },
-    "transit_stops": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/GRT_Stops/FeatureServer/0",
-        "description": "Grand River Transit stop locations.",
-    },
-    # ── Property & Assessment ───────────────────────────────────────
+    # ── Property ────────────────────────────────────────────────────
     "property_boundaries": {
-        "url": "https://services1.arcgis.com/gE4bwEMEYBMnOIkR/arcgis/rest/services/Property_Boundaries/FeatureServer/0",
-        "description": "Legal property boundary polygons.",
+        "url": "https://services1.arcgis.com/qAo1OsXi67t7XgmS/arcgis/rest/services/Property_Ownership_Public/FeatureServer/0",
+        "description": "Public property ownership boundaries.",
     },
 }
 

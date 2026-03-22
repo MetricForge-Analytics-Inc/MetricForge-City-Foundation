@@ -100,7 +100,7 @@ Department A (source system)
     │
     ├─► DLT Extract → normalized_opendata_extract (landing)
     │
-    ├─► SQLMesh atomic model → Foundry.city.{entity}_atomic (standardized)
+    ├─► SQLMesh atomic model → city.{entity}_atomic (standardized)
     │
     ├─► SQLMesh integration model → Cross-dept JOINs on ward/address
     │

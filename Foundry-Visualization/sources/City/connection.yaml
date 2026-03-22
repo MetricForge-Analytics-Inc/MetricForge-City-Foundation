@@ -1,7 +1,2 @@
-type: postgres
-host: ${CUBE_POSTGRES_HOST}
-port: ${CUBE_POSTGRES_PORT}
-user: ${CUBE_POSTGRES_USER}
-password: ${CUBE_POSTGRES_PASSWORD}
-database: ${CUBE_POSTGRES_DATABASE}
-ssl: true
+type: duckdb
+filename: ../db/metricforge.duckdb

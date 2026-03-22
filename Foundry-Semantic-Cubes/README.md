@@ -23,7 +23,7 @@ In Cube.js, when a user applies a date filter (e.g. "last 30 days"), that filter
 
 ### 1. `infrastructure_assets` — Cross-Departmental Infrastructure
 
-**Source:** `Foundry.city.infrastructure_integration_view`
+**Source:** `city.infrastructure_integration_view`
 **Time dimension:** `record_time`
 
 Joins roads, ward boundaries, and aggregated water main statistics to create a cross-departmental infrastructure view.
@@ -44,7 +44,7 @@ Joins roads, ward boundaries, and aggregated water main statistics to create a c
 
 ### 2. `development_permits` — Housing & Development
 
-**Source:** `Foundry.city.development_details_view`
+**Source:** `city.development_details_view`
 **Time dimension:** `record_time`
 
 Building permits enriched with ward demographics and infrastructure capacity metrics. Enables the **housing-vs-infrastructure capacity analysis** that directly addresses the problem statement (housing paused due to water capacity).
@@ -69,7 +69,7 @@ Building permits enriched with ward demographics and infrastructure capacity met
 
 ### 3. `water_infrastructure` — Water Distribution Network
 
-**Source:** `Foundry.city.water_mains_atomic_view`
+**Source:** `city.water_mains_atomic_view`
 **Time dimension:** `record_time`
 
 Water distribution main pipes — age analysis, material breakdown, and capacity indicators by ward.
@@ -89,7 +89,7 @@ Water distribution main pipes — age analysis, material breakdown, and capacity
 
 ### 4. `ward_overview` — Geographic Governance
 
-**Source:** `Foundry.city.boundaries_atomic_view`
+**Source:** `city.boundaries_atomic_view`
 **Time dimension:** `record_time`
 
 Ward-level demographics and governance. Serves as the **geographic join key** for cross-departmental analysis.
