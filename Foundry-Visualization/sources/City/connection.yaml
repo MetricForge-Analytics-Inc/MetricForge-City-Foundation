@@ -1,2 +1,7 @@
-type: duckdb
-filename: ../db/metricforge.duckdb
+type: postgres
+host: localhost
+port: 15432
+user: cube
+password: metricforge-local-dev-secret
+database: db
+ssl: false

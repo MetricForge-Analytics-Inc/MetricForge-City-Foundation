@@ -1,10 +1,11 @@
--- Infrastructure breakdown by ward.
+-- Infrastructure breakdown by ward via Cube semantic layer.
 
 SELECT
-  i.ward_id,
-  i.ward_name,
-  COUNT(*)                                  AS road_segments,
-  MAX(i.total_water_mains)                  AS water_mains,
-  MAX(i.ward_population)                    AS population
-FROM city__local.infrastructure_integration_view AS i
-GROUP BY i.ward_id, i.ward_name
+  ward_name,
+  MEASURE(total_road_segments)        AS road_segments,
+  MEASURE(total_water_mains_in_ward)  AS water_mains,
+  MEASURE(ward_population)            AS population,
+  MEASURE(ward_households)            AS households,
+  MEASURE(distinct_pipe_materials)    AS distinct_materials
+FROM infrastructure_assets
+GROUP BY 1

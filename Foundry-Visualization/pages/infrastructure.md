@@ -21,12 +21,12 @@ title: Infrastructure Assets
 SELECT * FROM city_kpis
 ```
 
-<BigValue data={kpis} value='total_road_segments'    title='Road Segments'       fmt='#,##0' />
-<BigValue data={kpis} value='total_road_length_km'    title='Road Network (km)'  fmt='#,##0.0' />
-<BigValue data={kpis} value='total_water_mains'       title='Water Mains'        fmt='#,##0' />
-<BigValue data={kpis} value='total_water_network_km'   title='Water Network (km)' fmt='#,##0.0' />
-<BigValue data={kpis} value='avg_pipe_age_years'       title='Avg Pipe Age (yrs)' fmt='#,##0.0' />
-<BigValue data={kpis} value='oldest_water_install_year' title='Oldest Pipe Year'  fmt='####' />
+<BigValue data={kpis} value='total_road_segments'        title='Road Segments'        fmt='#,##0' />
+<BigValue data={kpis} value='total_water_mains'           title='Water Mains'          fmt='#,##0' />
+<BigValue data={kpis} value='avg_pipe_age_years'          title='Avg Pipe Age (yrs)'   fmt='#,##0.0' />
+<BigValue data={kpis} value='avg_condition_score'         title='Avg Pipe Condition'   fmt='#,##0.1' />
+<BigValue data={kpis} value='total_population'            title='Population'           fmt='#,##0' />
+<BigValue data={kpis} value='total_residential_households' title='Households'           fmt='#,##0' />
 
 ---
 
@@ -44,17 +44,17 @@ SELECT * FROM cube_road_condition
 
 <BarChart
   data={road_condition}
-  x='condition'
+  x='surface_type'
   y='segments'
-  title='Segments by Surface Condition'
+  title='Segments by Surface Type'
   colorPalette={['#22c55e','#84cc16','#eab308','#f97316','#ef4444','#64748b']}
 />
 
 <BarChart
   data={road_condition}
   x='classification'
-  y='length_km'
-  title='Network Length by Road Class (km)'
+  y='segments'
+  title='Segments by Road Classification'
   swapXY={true}
   colorPalette={['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444']}
 />
@@ -65,10 +65,9 @@ SELECT * FROM cube_road_condition
   data={road_condition}
   rows=20
 >
-  <Column id='condition' title='Condition' />
+  <Column id='surface_type' title='Surface Type' />
   <Column id='classification' title='Classification' />
   <Column id='segments' title='Segments' fmt='#,##0' />
-  <Column id='length_km' title='Length (km)' fmt='#,##0.1' />
 </DataTable>
 
 ---
@@ -101,11 +100,10 @@ SELECT * FROM cube_by_ward
 >
   <Column id='ward_name' title='Ward' />
   <Column id='road_segments' title='Roads' fmt='#,##0' />
-  <Column id='road_length_km' title='Road km' fmt='#,##0.1' />
   <Column id='water_mains' title='Water Mains' fmt='#,##0' />
-  <Column id='water_network_km' title='Water km' fmt='#,##0.1' />
-  <Column id='oldest_water_year' title='Oldest Water' />
   <Column id='population' title='Population' fmt='#,##0' />
+  <Column id='households' title='Households' fmt='#,##0' />
+  <Column id='distinct_materials' title='Pipe Materials' fmt='#,##0' />
 </DataTable>
 
 </div>

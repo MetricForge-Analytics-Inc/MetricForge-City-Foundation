@@ -22,9 +22,9 @@ SELECT * FROM city_kpis
 ```
 
 <BigValue data={kpis} value='total_water_mains'        title='Total Water Mains'    fmt='#,##0' />
-<BigValue data={kpis} value='total_water_network_km'    title='Total Network (km)'   fmt='#,##0.0' />
 <BigValue data={kpis} value='avg_pipe_age_years'        title='Avg Pipe Age (yrs)'   fmt='#,##0.0' />
-<BigValue data={kpis} value='oldest_water_install_year' title='Oldest Pipe Year'     fmt='####' />
+<BigValue data={kpis} value='avg_condition_score'       title='Avg Condition Score'  fmt='#,##0.1' />
+<BigValue data={kpis} value='total_population'          title='Population Served'    fmt='#,##0' />
 
 ---
 
@@ -60,11 +60,35 @@ SELECT * FROM cube_water_by_material
 
 ---
 
+## Condition & Criticality by Material
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+
+<BarChart
+  data={water_material}
+  x='material'
+  y='avg_condition_score'
+  title='Avg Condition Score by Material'
+  colorPalette={['#22c55e','#84cc16','#eab308','#f97316','#ef4444','#64748b']}
+/>
+
+<BarChart
+  data={water_material}
+  x='material'
+  y='avg_criticality'
+  title='Avg Criticality by Material'
+  colorPalette={['#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#64748b']}
+/>
+
+</div>
+
+---
+
 <!-- ═══════════════════════════════════════════════════════════════════
      AGE & CONDITION RISK
      ═══════════════════════════════════════════════════════════════════ -->
 
-## Age & Capacity Risk by Ward
+## Water Infrastructure by Ward
 
 ```sql by_ward
 SELECT * FROM cube_by_ward
@@ -75,8 +99,8 @@ SELECT * FROM cube_by_ward
 <BarChart
   data={by_ward}
   x='ward_name'
-  y='water_network_km'
-  title='Water Network Length by Ward (km)'
+  y='water_mains'
+  title='Water Mains by Ward'
   swapXY={true}
   colorPalette={['#0ea5e9']}
 />
@@ -87,8 +111,7 @@ SELECT * FROM cube_by_ward
 >
   <Column id='ward_name' title='Ward' />
   <Column id='water_mains' title='Mains' fmt='#,##0' />
-  <Column id='water_network_km' title='Network (km)' fmt='#,##0.1' />
-  <Column id='oldest_water_year' title='Oldest Pipe' />
+  <Column id='distinct_materials' title='Materials' fmt='#,##0' />
   <Column id='population' title='Population' fmt='#,##0' />
 </DataTable>
 
@@ -104,13 +127,12 @@ SELECT * FROM cube_by_ward
   search=true
 >
   <Column id='material' title='Material' />
-  <Column id='ward' title='Ward' />
+  <Column id='pipe_status' title='Status' />
   <Column id='total_mains' title='Mains' fmt='#,##0' />
-  <Column id='length_km' title='Length (km)' fmt='#,##0.1' />
-  <Column id='avg_diameter_mm' title='Avg Diameter (mm)' fmt='#,##0.0' />
+  <Column id='avg_pipe_size' title='Avg Pipe Size' fmt='#,##0.0' />
+  <Column id='avg_condition_score' title='Condition' fmt='#,##0.1' />
+  <Column id='avg_criticality' title='Criticality' fmt='#,##0.1' />
   <Column id='avg_age_years' title='Avg Age (yrs)' fmt='#,##0.0' />
-  <Column id='oldest_year' title='Oldest' />
-  <Column id='newest_year' title='Newest' />
 </DataTable>
 
 <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; margin-top: 3rem;">

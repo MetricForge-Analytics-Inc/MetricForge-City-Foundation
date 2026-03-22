@@ -50,15 +50,15 @@ cubes:
         type: string
 
       - name: pipe_size
-        sql: pipe_size
+        sql: "CAST(pipe_size AS DOUBLE)"
         type: number
 
       - name: condition_score
-        sql: condition_score
+        sql: "CAST(condition_score AS DOUBLE)"
         type: number
 
       - name: criticality
-        sql: criticality
+        sql: "CAST(criticality AS DOUBLE)"
         type: number
 
     measures:
@@ -67,15 +67,15 @@ cubes:
         type: count
 
       - name: avg_pipe_size
-        sql: pipe_size
+        sql: "CAST(pipe_size AS DOUBLE)"
         type: avg
 
       - name: avg_condition_score
-        sql: condition_score
+        sql: "CAST(condition_score AS DOUBLE)"
         type: avg
 
       - name: avg_criticality
-        sql: criticality
+        sql: "CAST(criticality AS DOUBLE)"
         type: avg
 
       - name: oldest_install_date

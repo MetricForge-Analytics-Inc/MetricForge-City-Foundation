@@ -1,9 +1,9 @@
--- Permit activity by type and status.
+-- Permit activity by type and status via Cube semantic layer.
 
 SELECT
   permit_type,
   permit_status,
-  COUNT(*)                    AS total,
-  SUM(construction_value)     AS total_value
-FROM city__local.permits_atomic_view
-GROUP BY permit_type, permit_status
+  MEASURE(total_permits)            AS total,
+  MEASURE(total_construction_value) AS total_value
+FROM development_permits
+GROUP BY 1, 2

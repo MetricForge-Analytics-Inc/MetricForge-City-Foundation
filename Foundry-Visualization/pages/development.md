@@ -21,12 +21,12 @@ title: Development & Housing
 SELECT * FROM city_kpis
 ```
 
-<BigValue data={kpis} value='total_permits'          title='Total Permits'        fmt='#,##0' />
-<BigValue data={kpis} value='total_permit_value'     title='Total Est. Value'     fmt='$#,##0' />
-<BigValue data={kpis} value='avg_permit_value'        title='Avg Permit Value'    fmt='$#,##0' />
-<BigValue data={kpis} value='residential_permits'    title='Residential'          fmt='#,##0' />
-<BigValue data={kpis} value='commercial_permits'     title='Commercial'           fmt='#,##0' />
-<BigValue data={kpis} value='completed_permits'      title='Completed'            fmt='#,##0' />
+<BigValue data={kpis} value='total_permits'              title='Total Permits'         fmt='#,##0' />
+<BigValue data={kpis} value='total_construction_value'   title='Total Value'           fmt='$#,##0' />
+<BigValue data={kpis} value='avg_construction_value'     title='Avg Permit Value'      fmt='$#,##0' />
+<BigValue data={kpis} value='residential_permits'        title='Residential'           fmt='#,##0' />
+<BigValue data={kpis} value='commercial_permits'         title='Commercial'            fmt='#,##0' />
+<BigValue data={kpis} value='completed_permits'          title='Completed'             fmt='#,##0' />
 
 ---
 
@@ -58,8 +58,7 @@ SELECT * FROM cube_permits_by_type
   <Column id='permit_type' title='Type' />
   <Column id='permit_status' title='Status' />
   <Column id='total' title='Permits' fmt='#,##0' />
-  <Column id='estimated_value' title='Est. Value' fmt='$#,##0' />
-  <Column id='actual_value' title='Actual Value' fmt='$#,##0' />
+  <Column id='total_value' title='Construction Value' fmt='$#,##0' />
 </DataTable>
 
 </div>
@@ -70,32 +69,34 @@ SELECT * FROM cube_permits_by_type
      HOUSING vs INFRASTRUCTURE CAPACITY  (the key challenge metric)
      ═══════════════════════════════════════════════════════════════════ -->
 
-## Housing vs Infrastructure Capacity
+## Development Trends & Infrastructure Capacity
 
 _This analysis addresses the problem statement directly: housing development was paused because the Region didn't account for infill growth — only subdivisions. 50% of 2024 residential permits were infill._
 
-```sql permits_ward
+```sql permits_year
 SELECT * FROM cube_permits_by_ward
+```
+
+```sql by_ward
+SELECT * FROM cube_by_ward
 ```
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
 
 <BarChart
-  data={permits_ward}
-  x='ward_name'
-  y={['residential_permits', 'water_mains']}
-  title='Residential Permits vs Water Mains per Ward'
+  data={permits_year}
+  x='issue_year'
+  y={['residential_permits', 'commercial_permits']}
+  title='Residential vs Commercial Permits by Year'
   type='grouped'
-  swapXY={true}
   colorPalette={['#7c3aed','#0ea5e9']}
 />
 
 <BarChart
-  data={permits_ward}
-  x='ward_name'
+  data={permits_year}
+  x='issue_year'
   y='total_value'
-  title='Total Development Value by Ward'
-  swapXY={true}
+  title='Total Construction Value by Year'
   colorPalette={['#f59e0b']}
   fmt='$#,##0'
 />
@@ -103,24 +104,55 @@ SELECT * FROM cube_permits_by_ward
 </div>
 
 <DataTable
-  data={permits_ward}
-  rows=15
+  data={permits_year}
+  rows=20
   search=true
 >
-  <Column id='ward_name' title='Ward' />
+  <Column id='issue_year' title='Year' />
   <Column id='total_permits' title='Permits' fmt='#,##0' />
   <Column id='residential_permits' title='Residential' fmt='#,##0' />
-  <Column id='total_value' title='Total Value' fmt='$#,##0' />
-  <Column id='water_mains' title='Water Mains' fmt='#,##0' />
-  <Column id='population' title='Population' fmt='#,##0' />
-  <Column id='development_intensity' title='Dev. Intensity ($)' fmt='$#,##0' />
+  <Column id='commercial_permits' title='Commercial' fmt='#,##0' />
+  <Column id='total_value' title='Construction Value' fmt='$#,##0' />
+  <Column id='total_units_created' title='Units Created' fmt='#,##0' />
 </DataTable>
 
 ---
 
-{#if permits_ward.length > 0}
+## Infrastructure Capacity by Ward
+
+_Cross-referencing road and water infrastructure with ward demographics reveals where capacity constraints may arise._
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+
+<BarChart
+  data={by_ward}
+  x='ward_name'
+  y={['road_segments', 'water_mains']}
+  title='Road Segments & Water Mains per Ward'
+  type='grouped'
+  swapXY={true}
+  colorPalette={['#7c3aed','#0ea5e9']}
+/>
+
+<DataTable
+  data={by_ward}
+  rows=15
+  search=true
+>
+  <Column id='ward_name' title='Ward' />
+  <Column id='road_segments' title='Roads' fmt='#,##0' />
+  <Column id='water_mains' title='Water Mains' fmt='#,##0' />
+  <Column id='population' title='Population' fmt='#,##0' />
+  <Column id='households' title='Households' fmt='#,##0' />
+</DataTable>
+
+</div>
+
+---
+
+{#if permits_year.length > 0}
 <Alert status='info'>
-  <b>Cross-Departmental Insight:</b> Wards with high residential permit activity but low water infrastructure counts may face capacity constraints. This is the type of analysis that was missing when housing was paused due to water capacity issues.
+  <b>Cross-Departmental Insight:</b> Comparing permit volume trends with ward-level infrastructure data (above) reveals where development growth may outpace water and road capacity. This is the type of analysis that was missing when housing was paused due to water capacity issues.
 </Alert>
 {/if}
 
