@@ -1,3 +1,7 @@
+MetricForge-City-Foundation
+FCI (Future Cities Initiative) Challenge - KPI Generation/City Data OS
+
+
 # MetricForge Foundry
 
 Data platform for MetricForge analytics — extraction through visualization.
