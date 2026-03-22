@@ -1,2 +1,2 @@
-dlt[motherduck,parquet]>=1.0.0
+dlt[duckdb,parquet]>=1.0.0
 requests>=2.31.0

@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  # ── Postgres (SQLMesh state only) ──────────────────────────────────
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sqlmesh_state
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Cube.js (Semantic Layer → DuckDB) ──────────────────────────────
+  cube:
+    image: cubejs/cube:latest
+    ports:
+      - "4000:4000"    # Cube API + Playground
+      - "15432:15432"  # Cube SQL API (Postgres-wire)
+    environment:
+      CUBEJS_DB_TYPE: duckdb
+      CUBEJS_DB_DUCKDB_DATABASE_PATH: /cube/db/foundry.duckdb
+      CUBEJS_DEV_MODE: "true"
+      CUBEJS_API_SECRET: metricforge-local-dev-secret
+      CUBEJS_SQL_PORT: "15432"
+      CUBEJS_PG_SQL_PORT: "15432"
+      CUBEJS_SCHEMA_PATH: schema
+    volumes:
+      - ./Foundry-Semantic-Cubes/schema:/cube/conf/schema
+      - ./db:/cube/db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Evidence (Frontend Dashboard) ──────────────────────────────────
+  evidence:
+    build:
+      context: .
+      dockerfile: Foundry-Visualization/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      CUBE_POSTGRES_HOST: cube
+      CUBE_POSTGRES_PORT: "15432"
+      CUBE_POSTGRES_USER: nouser
+      CUBE_POSTGRES_PASSWORD: nopassword
+      CUBE_POSTGRES_DATABASE: Foundry
+      NODE_ENV: development
+    depends_on:
+      - cube
+
+volumes:
+  pgdata:

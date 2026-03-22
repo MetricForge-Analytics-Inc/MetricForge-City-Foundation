@@ -1,5 +1,0 @@
-name: Foundry
-type: postgres
-options:
-  ssl:
-    sslmode: prefer

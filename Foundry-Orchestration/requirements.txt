@@ -2,7 +2,7 @@ duckdb==1.2.2
 prefect==3.6.21
 notebook==7.5.4
 dlt[duckdb]==1.23.0
-dlt[motherduck,parquet]>=1.0.0
+dlt[duckdb,parquet]>=1.0.0
 sqlmesh[duckdb, dlt, web, postgres, lsp]==0.231.1
 requests>=2.31.0
 

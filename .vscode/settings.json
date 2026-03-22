@@ -13,9 +13,9 @@
     "sqltools.useNodeRuntime": true,
     "sqltools.connections": [
         {
-            "name": "MotherDuck – Foundry",
+            "name": "Local DuckDB – Foundry",
             "driver": "DuckDB",
-            "database": "md:Foundry?motherduck_token=${MOTHERDUCK_CODESPACE_TOKEN}"
+            "database": "db/foundry.duckdb"
         }
     ]
 }

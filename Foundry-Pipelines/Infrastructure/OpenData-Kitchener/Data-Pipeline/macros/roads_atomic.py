@@ -7,26 +7,38 @@ def roads_atomic_query(evaluator, table_type):
     if table_type == "table":
         query_suffix = """
     WHERE
-        COALESCE(roads.EditDate, roads.CreatedDate, TIMESTAMP '2020-01-01')
+        COALESCE(epoch_ms(roads.update_date), epoch_ms(roads.create_date), TIMESTAMP '2020-01-01')
         BETWEEN @start_date AND @end_date
         """
 
     return f"""--sql
     SELECT
-        roads.OBJECTID             AS road_id,
-        roads.ROAD_NAME            AS road_name,
-        roads.ROAD_CLASS           AS road_classification,
-        roads.SURFACE_TYPE         AS surface_type,
-        roads.SURFACE_COND         AS surface_condition,
-        roads.NUM_LANES            AS number_of_lanes,
-        roads.SPEED_LIMIT          AS speed_limit_kmh,
-        roads.LENGTH_M             AS segment_length_m,
-        roads.OWNERSHIP            AS ownership,
-        roads.MAINT_RESP           AS maintenance_responsibility,
-        roads.WARD                 AS ward,
-        roads.CreatedDate          AS created_time,
-        roads.EditDate             AS last_updated_time,
-        COALESCE(roads.EditDate, roads.CreatedDate, TIMESTAMP '2020-01-01')
+        roads.objectid             AS road_id,
+        roads.roadsegmentid        AS road_segment_id,
+        roads.street               AS road_name,
+        roads.street_name          AS street_name,
+        roads.street_type          AS street_type,
+        roads.street_direction     AS street_direction,
+        roads.from_street          AS from_street,
+        roads.to_street            AS to_street,
+        roads.carto_class          AS road_classification,
+        roads.category             AS category,
+        roads.subcategory          AS subcategory,
+        roads.surface_layer_type   AS surface_type,
+        roads.status               AS surface_condition,
+        roads.lanes                AS number_of_lanes,
+        roads.speed_limit_km       AS speed_limit_kmh,
+        roads.shape__length        AS segment_length_m,
+        roads.pavement_width       AS pavement_width,
+        roads.row_width            AS row_width,
+        roads.ownership            AS ownership,
+        roads.maintenance          AS maintenance_responsibility,
+        roads.operations_class     AS operations_class,
+        roads.aadt                 AS aadt,
+        roads.wardid               AS ward,
+        epoch_ms(roads.create_date)  AS created_time,
+        epoch_ms(roads.update_date)  AS last_updated_time,
+        COALESCE(epoch_ms(roads.update_date), epoch_ms(roads.create_date), TIMESTAMP '2020-01-01')
                                    AS record_time
     FROM
         Foundry.normalized_opendata_extract.road_segments AS roads

@@ -2,21 +2,26 @@
 Kitchener Open Data DLT pipeline.
 
 Extracts datasets from the City of Kitchener ArcGIS Open Data portal
-and loads them into MotherDuck as a normalized landing schema.
+and loads them into a local DuckDB database as a normalized landing schema.
 """
 import time
+from pathlib import Path
 from typing import Any
 
 import dlt
 
 from opendata import kitchener_opendata, DATASET_CATALOG
 
+# Resolve path to the shared DuckDB file at repo_root/db/foundry.duckdb
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+DUCKDB_PATH = str(_REPO_ROOT / "db" / "foundry.duckdb")
+
 
 def load_all_datasets() -> Any:
     """Load every registered dataset from the catalog."""
     pipeline = dlt.pipeline(
         pipeline_name="dlt_kitchener_opendata",
-        destination="motherduck",
+        destination=dlt.destinations.duckdb(credentials=DUCKDB_PATH),
         dev_mode=False,
         dataset_name="normalized_opendata_extract",
     )
@@ -29,7 +34,7 @@ def load_infrastructure_only() -> Any:
     """Load only infrastructure-related layers (roads, water, sewers, bridges)."""
     pipeline = dlt.pipeline(
         pipeline_name="dlt_kitchener_opendata",
-        destination="motherduck",
+        destination=dlt.destinations.duckdb(credentials=DUCKDB_PATH),
         dev_mode=False,
         dataset_name="normalized_opendata_extract",
     )
@@ -49,7 +54,7 @@ def load_planning_only() -> Any:
     """Load only planning & development layers."""
     pipeline = dlt.pipeline(
         pipeline_name="dlt_kitchener_opendata",
-        destination="motherduck",
+        destination=dlt.destinations.duckdb(credentials=DUCKDB_PATH),
         dev_mode=False,
         dataset_name="normalized_opendata_extract",
     )
@@ -70,7 +75,7 @@ def load_transit_and_parks() -> Any:
     """Load transit routes/stops and parks/trees."""
     pipeline = dlt.pipeline(
         pipeline_name="dlt_kitchener_opendata",
-        destination="motherduck",
+        destination=dlt.destinations.duckdb(credentials=DUCKDB_PATH),
         dev_mode=False,
         dataset_name="normalized_opendata_extract",
     )

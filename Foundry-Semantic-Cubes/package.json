@@ -1,0 +1,8 @@
+{
+  "name": "foundry-semantic-cubes",
+  "private": true,
+  "dependencies": {
+    "@cubejs-backend/duckdb-driver": "^1.6.25",
+    "@cubejs-backend/server": "^1.6.25"
+  }
+}

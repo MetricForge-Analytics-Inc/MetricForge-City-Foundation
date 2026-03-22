@@ -7,29 +7,42 @@ def permits_atomic_query(evaluator, table_type):
     if table_type == "table":
         query_suffix = """
     WHERE
-        COALESCE(permits.ISSUED_DATE, permits.APPLICATION_DATE, TIMESTAMP '2020-01-01')
+        COALESCE(epoch_ms(permits.issue_date), epoch_ms(permits.application_date), TIMESTAMP '2020-01-01')
         BETWEEN @start_date AND @end_date
         """
 
     return f"""--sql
     SELECT
-        permits.OBJECTID              AS permit_id,
-        permits.PERMIT_NUMBER         AS permit_number,
-        permits.PERMIT_TYPE           AS permit_type,
-        permits.PERMIT_STATUS         AS permit_status,
-        permits.WORK_TYPE             AS work_type,
-        permits.DESCRIPTION           AS permit_description,
-        permits.APPLICATION_DATE      AS application_date,
-        permits.ISSUED_DATE           AS issued_date,
-        permits.COMPLETED_DATE        AS completed_date,
-        permits.ESTIMATED_VALUE       AS estimated_value,
-        permits.ACTUAL_VALUE          AS actual_value,
-        permits.ADDRESS               AS address,
-        permits.WARD                  AS ward,
-        permits.NEIGHBOURHOOD         AS neighbourhood,
-        permits.CreatedDate           AS created_time,
-        permits.EditDate              AS last_updated_time,
-        COALESCE(permits.ISSUED_DATE, permits.APPLICATION_DATE, TIMESTAMP '2020-01-01')
+        permits.objectid              AS permit_id,
+        permits.permitno              AS permit_number,
+        permits.permit_type           AS permit_type,
+        permits.permit_status         AS permit_status,
+        permits.work_type             AS work_type,
+        permits.sub_work_type         AS sub_work_type,
+        permits.permit_description    AS permit_description,
+        epoch_ms(permits.application_date) AS application_date,
+        epoch_ms(permits.issue_date)      AS issued_date,
+        epoch_ms(permits.final_date)      AS completed_date,
+        epoch_ms(permits.expiry_date)     AS expiry_date,
+        permits.issue_year            AS issue_year,
+        permits.construction_value    AS estimated_value,
+        permits.construction_value__v_double AS actual_value,
+        permits.permit_fee            AS permit_fee,
+        permits.foldername            AS address,
+        permits.legal_description     AS legal_description,
+        permits.roll_no               AS roll_no,
+        permits.units_created         AS units_created,
+        permits.units_net_change      AS units_net_change,
+        permits.storeys_proposed      AS storeys_proposed,
+        permits.total_units           AS total_units,
+        permits.existing_gfa_m2       AS existing_gfa_m2,
+        permits.proposed_gfa          AS proposed_gfa,
+        permits.total_gfa_m2          AS total_gfa_m2,
+        permits.new_floor_area_sqft   AS new_floor_area_sqft,
+        permits.applicant             AS applicant,
+        permits.issued_by             AS issued_by,
+        permits.extraction_date       AS extraction_date,
+        COALESCE(epoch_ms(permits.issue_date), epoch_ms(permits.application_date), TIMESTAMP '2020-01-01')
                                       AS record_time
     FROM
         Foundry.normalized_opendata_extract.building_permits AS permits

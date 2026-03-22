@@ -22,69 +22,43 @@ def development_details_query(evaluator, table_type):
         permits.permit_type,
         permits.permit_status,
         permits.work_type,
+        permits.sub_work_type,
         permits.permit_description,
         permits.application_date,
         permits.issued_date,
         permits.completed_date,
         permits.estimated_value,
         permits.actual_value,
+        permits.permit_fee,
         permits.address,
-        permits.ward,
-        permits.neighbourhood,
+        permits.legal_description,
+        permits.units_created,
+        permits.units_net_change,
+        permits.storeys_proposed,
+        permits.total_units,
+        permits.new_floor_area_sqft,
+        permits.applicant,
         permits.record_time,
 
-        -- Ward context
-        wards.ward_name,
-        wards.councillor,
-        wards.population            AS ward_population,
-        wards.area_sq_km            AS ward_area_sq_km,
-
-        -- Infrastructure capacity in same ward (water mains as proxy)
-        water_agg.total_water_mains AS ward_water_mains,
-        water_agg.oldest_install_year AS ward_oldest_water_year,
-        water_agg.total_water_length_m AS ward_water_network_length_m,
-
-        -- Development intensity metrics per ward
-        dev_agg.total_permits_in_ward,
-        dev_agg.total_estimated_value_in_ward,
-        dev_agg.residential_permits_in_ward
+        -- Development intensity metrics (aggregated across all permits)
+        dev_agg.total_permits,
+        dev_agg.total_estimated_value,
+        dev_agg.residential_permits
 
     FROM
         Foundry.city.permits_atomic_{table_type} AS permits
 
-    LEFT JOIN
-        Foundry.city.boundaries_atomic_{table_type} AS wards
-    ON
-        permits.ward = wards.ward_number
-
     LEFT JOIN (
         SELECT
-            ward,
-            COUNT(*)                   AS total_water_mains,
-            MIN(install_year)          AS oldest_install_year,
-            SUM(segment_length_m)      AS total_water_length_m
-        FROM
-            Foundry.city.water_mains_atomic_{table_type}
-        GROUP BY
-            ward
-    ) AS water_agg
-    ON
-        permits.ward = water_agg.ward
-
-    LEFT JOIN (
-        SELECT
-            ward,
-            COUNT(*)                   AS total_permits_in_ward,
-            SUM(estimated_value)       AS total_estimated_value_in_ward,
+            COUNT(*)                   AS total_permits,
+            SUM(estimated_value)       AS total_estimated_value,
             SUM(CASE WHEN permit_type ILIKE '%residential%' THEN 1 ELSE 0 END)
-                                       AS residential_permits_in_ward
+                                       AS residential_permits
         FROM
             Foundry.city.permits_atomic_{table_type}
-        GROUP BY
-            ward
     ) AS dev_agg
     ON
-        permits.ward = dev_agg.ward
+        1 = 1
 
     {query_suffix}
     """

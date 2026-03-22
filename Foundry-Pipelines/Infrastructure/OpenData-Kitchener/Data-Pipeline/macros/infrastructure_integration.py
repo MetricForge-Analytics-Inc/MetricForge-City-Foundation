@@ -35,7 +35,7 @@ def infrastructure_integration_query(evaluator, table_type):
         wards.area_sq_km         AS ward_area_sq_km,
         wards.population         AS ward_population,
 
-        -- Water infrastructure in same ward (aggregated)
+        -- Water infrastructure on same road segment (aggregated)
         water_agg.total_water_mains,
         water_agg.avg_pipe_diameter_mm,
         water_agg.oldest_install_year,
@@ -51,7 +51,7 @@ def infrastructure_integration_query(evaluator, table_type):
 
     LEFT JOIN (
         SELECT
-            ward,
+            road_segment_id,
             COUNT(*)                   AS total_water_mains,
             ROUND(AVG(diameter_mm), 1) AS avg_pipe_diameter_mm,
             MIN(install_year)          AS oldest_install_year,
@@ -59,10 +59,10 @@ def infrastructure_integration_query(evaluator, table_type):
         FROM
             Foundry.city.water_mains_atomic_{table_type}
         GROUP BY
-            ward
+            road_segment_id
     ) AS water_agg
     ON
-        roads.ward = water_agg.ward
+        roads.road_segment_id = water_agg.road_segment_id
 
     {query_suffix}
     """
