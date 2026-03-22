@@ -1,12 +1,12 @@
 # ─────────────────────────────────────────────────────────────────
 #  Water Infrastructure Cube
 #  Time-attributed by: record_time
-#  Source view: city.water_mains_atomic_view
+#  Source view: city__local.water_mains_atomic_view
 # ─────────────────────────────────────────────────────────────────
 
 cubes:
   - name: water_infrastructure
-    sql_table: city.water_mains_atomic_view
+    sql_table: city__local.water_mains_atomic_view
     description: >
       Water distribution main pipes — age analysis, material
       breakdown, and capacity indicators by ward.

@@ -1,12 +1,12 @@
 # ─────────────────────────────────────────────────────────────────
 #  Infrastructure Assets Cube
 #  Time-attributed by: record_time (last edit / creation)
-#  Source view: city.infrastructure_integration_view
+#  Source view: city__local.infrastructure_integration_view
 # ─────────────────────────────────────────────────────────────────
 
 cubes:
   - name: infrastructure_assets
-    sql_table: city.infrastructure_integration_view
+    sql_table: city__local.infrastructure_integration_view
     description: >
       Cross-departmental infrastructure view joining roads, water mains
       and ward boundaries.  Time-attributed by record update time.

@@ -1,0 +1,41 @@
+# ─────────────────────────────────────────────────────────────────
+#  Docker Compose — Local Cube.js Semantic Layer
+#
+#  Usage:
+#    cd Foundry-Semantic-Cubes
+#    docker compose up          # foreground
+#    docker compose up -d       # background (detached)
+#
+#  Endpoints after startup:
+#    Playground UI :  http://localhost:4000
+#    REST API      :  http://localhost:4000/cubejs-api/v1
+#    SQL API       :  localhost:15432  (Postgres-wire, user: cube)
+#
+#  The DuckDB file is mounted read-only from ../db/metricforge.duckdb.
+#  Make sure the pipeline has been run at least once before starting.
+# ─────────────────────────────────────────────────────────────────
+
+services:
+  cube:
+    image: cubejs/cube:v1.3
+    ports:
+      - "4000:4000"     # REST + Playground
+      - "15432:15432"   # SQL API (Postgres wire protocol)
+    environment:
+      # ── Data source ─────────────────────────────────────────────
+      CUBEJS_DB_TYPE: duckdb
+      CUBEJS_DB_DUCKDB_DATABASE_PATH: /cube/db/metricforge.duckdb
+      # ── API settings ────────────────────────────────────────────
+      CUBEJS_DEV_MODE: "true"
+      CUBEJS_API_SECRET: "metricforge-local-dev-secret"
+      CUBEJS_EXTERNAL_DEFAULT: "true"
+      CUBEJS_SCHEMA_PATH: model
+      # ── SQL API (Postgres-wire) ─────────────────────────────────
+      CUBEJS_PG_SQL_PORT: "15432"
+    volumes:
+      # Mount cube model definitions
+      - ./City:/cube/conf/model:ro
+      # Mount the DuckDB file (DuckDB needs write access for WAL/lock files)
+      - ../db:/cube/db
+      # Mount cube.py configuration
+      - ./cube.py:/cube/conf/cube.py:ro

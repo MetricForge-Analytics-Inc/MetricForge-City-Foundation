@@ -21,14 +21,14 @@ SELECT
 FROM (
   SELECT
     COUNT(*)  AS total_road_segments
-  FROM city.roads_atomic_view
+  FROM city__local.roads_atomic_view
 ) AS infra
 
 CROSS JOIN (
   SELECT
     COUNT(*)                         AS total_water_mains,
     COUNT(DISTINCT pipe_material)    AS distinct_materials
-  FROM city.water_mains_atomic_view
+  FROM city__local.water_mains_atomic_view
 ) AS water
 
 CROSS JOIN (
@@ -36,12 +36,12 @@ CROSS JOIN (
     COUNT(*)                  AS total_permits,
     SUM(construction_value)   AS total_construction_value,
     SUM(units_created)        AS total_units_created
-  FROM city.permits_atomic_view
+  FROM city__local.permits_atomic_view
 ) AS dev
 
 CROSS JOIN (
   SELECT
     COUNT(*)         AS total_wards,
     SUM(population)  AS total_population
-  FROM city.boundaries_atomic_view
+  FROM city__local.boundaries_atomic_view
 ) AS wards

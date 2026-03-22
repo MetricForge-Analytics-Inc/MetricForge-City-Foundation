@@ -3,6 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import requests
 from prefect import flow, task, get_run_logger
 
 
@@ -52,6 +53,35 @@ def transform(theme: str, site: str) -> None:
     )
 
 
+CUBE_API_URL = "http://localhost:4000/cubejs-api/v1"
+CUBE_API_SECRET = "metricforge-local-dev-secret"
+
+
+@task(name="cube-refresh")
+def refresh_cube() -> None:
+    """Tell the local Cube.js instance to reload its schema cache.
+
+    This is a best-effort step — if Cube isn't running, we skip gracefully
+    so the pipeline still completes.
+    """
+    logger = get_run_logger()
+    headers = {"Authorization": CUBE_API_SECRET}
+    try:
+        resp = requests.get(
+            f"{CUBE_API_URL}/meta",
+            headers=headers,
+            timeout=10,
+        )
+        resp.raise_for_status()
+        cubes = resp.json().get("cubes", [])
+        logger.info("Cube.js reachable — %d cube(s) loaded: %s",
+                     len(cubes), [c["name"] for c in cubes])
+    except requests.ConnectionError:
+        logger.info("Cube.js not running — skipping semantic refresh")
+    except Exception as exc:
+        logger.warning("Cube.js refresh check failed: %s", exc)
+
+
 @flow(name="city-pipeline")
 def main() -> None:
     parser = argparse.ArgumentParser(description="MetricForge City Foundation Pipeline")
@@ -67,6 +97,7 @@ def main() -> None:
 
     extract(args.theme, args.site)
     transform(args.theme, args.site)
+    refresh_cube()
 
 
 if __name__ == "__main__":

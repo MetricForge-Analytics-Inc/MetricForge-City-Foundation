@@ -1,12 +1,12 @@
 # ─────────────────────────────────────────────────────────────────
 #  Ward Overview Cube
 #  Time-attributed by: record_time
-#  Source view: city.boundaries_atomic_view
+#  Source view: city__local.boundaries_atomic_view
 # ─────────────────────────────────────────────────────────────────
 
 cubes:
   - name: ward_overview
-    sql_table: city.boundaries_atomic_view
+    sql_table: city__local.boundaries_atomic_view
     description: >
       Ward-level demographics and governance — population, area,
       councillor assignments. Serves as the geographic join key

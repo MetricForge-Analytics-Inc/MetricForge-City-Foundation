@@ -2,12 +2,36 @@
 
 ## Overview
 
-Semantic cubes define the **measures** (metrics) and **dimensions** (attributes) that sit between raw data and the visualization layer. Each cube YAML file in `City/` maps to a Cube.js cube definition that queries the `city.*` SQLMesh views.
+Semantic cubes define the **measures** (metrics) and **dimensions** (attributes) that sit between raw data and the visualization layer. Each cube YAML file in `City/` maps to a Cube.js cube definition that queries the `city__local.*` SQLMesh views in DuckDB.
 
 The cubes expose:
 - **Dimensions:** Categorical or identifier columns (ward, road_name, pipe_material, permit_type, etc.)
 - **Time dimensions:** Temporal columns bound to the cube for date-range filtering (`record_time`)
-- **Measures:** Pre-defined aggregations (counts, sums, averages) that Evidence dashboards query via the `MEASURE()` SQL macro
+- **Measures:** Pre-defined aggregations (counts, sums, averages)
+
+## Running Cube Locally
+
+Cube.js (Cube Dev) is **fully open source** (Apache 2.0). You can run it locally via Docker:
+
+```bash
+cd Foundry-Semantic-Cubes
+docker compose up        # foreground
+docker compose up -d     # background (detached)
+```
+
+After startup:
+
+| Endpoint | URL | Description |
+|---|---|---|
+| **Playground** | http://localhost:4000 | Interactive query builder UI |
+| **REST API** | http://localhost:4000/cubejs-api/v1 | JSON API for programmatic access |
+| **SQL API** | `localhost:15432` | Postgres-wire protocol (user: `cube`) |
+
+**Prerequisites:**
+- Docker Desktop running
+- Pipeline executed at least once (`python Foundry-Orchestration/City-Main.py`)
+
+The DuckDB file is mounted read-only into the container — the pipeline writes data, Cube reads it.
 
 ## Why Time Attribution Matters
 
