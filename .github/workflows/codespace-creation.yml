@@ -1,0 +1,25 @@
+name: Create Codespace on New Branch
+
+on:
+  # create: # disable automatic trigger
+  workflow_dispatch:
+
+jobs:
+  create-codespace:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up GitHub CLI
+        run: |
+          sudo apt-get install gh
+
+      - name: Authenticate GitHub CLI
+        run: gh auth login -h github.com -s codespace
+
+      - name: Create Codespace
+        run: |
+          # Assuming you're using a default GitHub Codespace configuration
+          gh codespace create --repo ${{ github.repository }} --branch ${{ github.ref_name }}

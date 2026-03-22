@@ -1,0 +1,33 @@
+SELECT
+  case_assigned_group_stations,
+  case_assignee_stations,
+  case_description,
+  case_has_incidents,
+  --case_id, this needs to be set for shown: true in cube this is bugged
+  case_is_public,
+  case_number_of_reopens,
+  case_number_of_replies,
+  case_on_hold_minutes_business,
+  case_on_hold_minutes_calendar,
+  case_organization_id,
+  case_priority,
+  case_reply_time_in_minutes_business,
+  case_reply_time_in_minutes_calendar,
+  case_subject,
+  case_topic,
+  case_tags,
+  case_type,
+  channel,
+  case_current_status,
+  case_status_last_updated_time,
+  case_satisfaction_rating,
+  case_assignee_last_updated_time,
+  case_created_time,
+  case_custom_status_updated_time,
+  case_initial_assignment_time,
+  case_last_assignment_time,
+  case_last_updated_time,
+  case_latest_comment_added_time,
+  case_requester_last_updated_time
+FROM
+  tickets_integration_view

@@ -1,0 +1,21 @@
+{
+    "evidence.previewType": "internal - side-by-side",
+    "files.autoSave": "off",
+    "editor.acceptSuggestionOnEnter": "on",
+    "editor.quickSuggestions": {
+        "other": false,
+        "comments": false,
+        "strings": false
+    },
+    "editor.quickSuggestionsDelay": 300,
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.pythonProjects": [],
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+        {
+            "name": "MotherDuck – Foundry",
+            "driver": "DuckDB",
+            "database": "md:Foundry?motherduck_token=${MOTHERDUCK_CODESPACE_TOKEN}"
+        }
+    ]
+}
