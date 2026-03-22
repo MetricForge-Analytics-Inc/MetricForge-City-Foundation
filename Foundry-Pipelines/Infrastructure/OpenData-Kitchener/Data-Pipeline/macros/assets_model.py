@@ -1,14 +1,17 @@
 from sqlmesh import macro
 
 
+_SRC_SCHEMA = "normalized_opendata_extract"
+
+
 @macro()
 def assets_query(evaluator, table_type):
     """
     Maps all Kitchener Open Data sources into the universal `assets` schema
     defined in db_schema.md.  One row per physical or logical municipal asset.
 
-    Field names match the actual Kitchener ArcGIS feature services.
-    Date fields from ArcGIS arrive as epoch-millisecond integers.
+    Column names are lowercase (DLT normalizes them).
+    Date fields from ArcGIS arrive as epoch-millisecond BIGINTs.
     """
     roads_filter = ""
     water_filter = ""
@@ -18,27 +21,27 @@ def assets_query(evaluator, table_type):
     if table_type == "table":
         roads_filter = (
             "WHERE COALESCE("
-            "  CASE WHEN src.UPDATE_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.UPDATE_DATE) END, "
-            "  CASE WHEN src.CREATE_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.CREATE_DATE) END, "
+            "  CASE WHEN src.update_date IS NOT NULL "
+            "       THEN epoch_ms(src.update_date) END, "
+            "  CASE WHEN src.create_date IS NOT NULL "
+            "       THEN epoch_ms(src.create_date) END, "
             "  TIMESTAMP '2020-01-01'"
             ") BETWEEN @start_date AND @end_date"
         )
         water_filter = (
             "WHERE COALESCE("
-            "  CASE WHEN src.INSTALLATION_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.INSTALLATION_DATE) END, "
+            "  CASE WHEN src.installation_date IS NOT NULL "
+            "       THEN epoch_ms(src.installation_date) END, "
             "  TIMESTAMP '2020-01-01'"
             ") BETWEEN @start_date AND @end_date"
         )
-        wards_filter = "WHERE TRUE"  # wards have no date fields
+        wards_filter = "WHERE TRUE"
         permits_filter = (
             "WHERE COALESCE("
-            "  CASE WHEN src.ISSUE_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.ISSUE_DATE) END, "
-            "  CASE WHEN src.APPLICATION_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.APPLICATION_DATE) END, "
+            "  CASE WHEN src.issue_date IS NOT NULL "
+            "       THEN epoch_ms(src.issue_date) END, "
+            "  CASE WHEN src.application_date IS NOT NULL "
+            "       THEN epoch_ms(src.application_date) END, "
             "  TIMESTAMP '2020-01-01'"
             ") BETWEEN @start_date AND @end_date"
         )
@@ -46,103 +49,103 @@ def assets_query(evaluator, table_type):
     return f"""--sql
     -- ── Roads → asset_type = 'road' ──────────────────────────────
     SELECT
-        'kitchener_arcgis:road:' || CAST(src.OBJECTID AS VARCHAR) AS asset_id,
+        'kitchener_arcgis:road:' || CAST(src.objectid AS VARCHAR) AS asset_id,
         'road'                        AS asset_type,
         'engineering'                 AS department_owner,
-        CAST(src.OBJECTID AS VARCHAR) AS source_system_id,
+        CAST(src.objectid AS VARCHAR) AS source_system_id,
         'kitchener_arcgis'            AS source_system,
-        src.STREET                    AS label,
+        src.street                    AS label,
         NULL                          AS geom,
         NULL                          AS latitude,
         NULL                          AS longitude,
-        COALESCE(src.STATUS, 'active') AS status,
+        COALESCE(src.status, 'active') AS status,
         'internal'                    AS privacy_class,
-        CASE WHEN src.CREATE_DATE IS NOT NULL
-             THEN epoch_ms(src.CREATE_DATE) END AS created_at,
-        CASE WHEN src.UPDATE_DATE IS NOT NULL
-             THEN epoch_ms(src.UPDATE_DATE) END AS updated_at,
+        CASE WHEN src.create_date IS NOT NULL
+             THEN epoch_ms(src.create_date) END AS created_at,
+        CASE WHEN src.update_date IS NOT NULL
+             THEN epoch_ms(src.update_date) END AS updated_at,
         NULL                          AS valid_from,
         NULL                          AS valid_to,
         COALESCE(
-          CASE WHEN src.UPDATE_DATE IS NOT NULL
-               THEN epoch_ms(src.UPDATE_DATE) END,
-          CASE WHEN src.CREATE_DATE IS NOT NULL
-               THEN epoch_ms(src.CREATE_DATE) END,
+          CASE WHEN src.update_date IS NOT NULL
+               THEN epoch_ms(src.update_date) END,
+          CASE WHEN src.create_date IS NOT NULL
+               THEN epoch_ms(src.create_date) END,
           TIMESTAMP '2020-01-01'
         )                             AS record_time
-    FROM normalized_opendata_extract.road_segments AS src
+    FROM {_SRC_SCHEMA}.road_segments AS src
     {roads_filter}
 
     UNION ALL
 
     -- ── Water Mains → asset_type = 'pipe' ────────────────────────
     SELECT
-        'kitchener_arcgis:pipe:' || CAST(src.OBJECTID AS VARCHAR),
+        'kitchener_arcgis:pipe:' || CAST(src.objectid AS VARCHAR),
         'pipe',
         'utilities',
-        CAST(src.OBJECTID AS VARCHAR),
+        CAST(src.objectid AS VARCHAR),
         'kitchener_arcgis',
-        'Water Main ' || CAST(src.OBJECTID AS VARCHAR),
+        'Water Main ' || CAST(src.objectid AS VARCHAR),
         NULL, NULL, NULL,
-        COALESCE(src.STATUS, 'active'),
+        COALESCE(src.status, 'active'),
         'internal',
-        CASE WHEN src.INSTALLATION_DATE IS NOT NULL
-             THEN epoch_ms(src.INSTALLATION_DATE) END,
+        CASE WHEN src.installation_date IS NOT NULL
+             THEN epoch_ms(src.installation_date) END,
         NULL,
         NULL, NULL,
         COALESCE(
-          CASE WHEN src.INSTALLATION_DATE IS NOT NULL
-               THEN epoch_ms(src.INSTALLATION_DATE) END,
+          CASE WHEN src.installation_date IS NOT NULL
+               THEN epoch_ms(src.installation_date) END,
           TIMESTAMP '2020-01-01'
         )
-    FROM normalized_opendata_extract.water_mains AS src
+    FROM {_SRC_SCHEMA}.water_mains AS src
     {water_filter}
 
     UNION ALL
 
     -- ── Building Permits → asset_type = 'permit' ─────────────────
     SELECT
-        'kitchener_arcgis:permit:' || CAST(src.OBJECTID AS VARCHAR),
+        'kitchener_arcgis:permit:' || CAST(src.objectid AS VARCHAR),
         'permit',
         'planning',
-        COALESCE(src.PERMITNO, CAST(src.OBJECTID AS VARCHAR)),
+        COALESCE(src.permitno, CAST(src.objectid AS VARCHAR)),
         'kitchener_arcgis',
-        src.FOLDERNAME,
+        src.foldername,
         NULL, NULL, NULL,
         CASE
-            WHEN src.PERMIT_STATUS ILIKE '%complete%' THEN 'inactive'
-            WHEN src.PERMIT_STATUS ILIKE '%cancel%'   THEN 'inactive'
+            WHEN src.permit_status ILIKE '%complete%' THEN 'inactive'
+            WHEN src.permit_status ILIKE '%cancel%'   THEN 'inactive'
             ELSE 'active'
         END,
         'internal',
-        CASE WHEN src.APPLICATION_DATE IS NOT NULL
-             THEN epoch_ms(src.APPLICATION_DATE) END,
-        CASE WHEN src.ISSUE_DATE IS NOT NULL
-             THEN epoch_ms(src.ISSUE_DATE) END,
-        CASE WHEN src.APPLICATION_DATE IS NOT NULL
-             THEN CAST(epoch_ms(src.APPLICATION_DATE) AS DATE) END,
-        CASE WHEN src.FINAL_DATE IS NOT NULL
-             THEN CAST(epoch_ms(src.FINAL_DATE) AS DATE) END,
+        CASE WHEN src.application_date IS NOT NULL
+             THEN epoch_ms(src.application_date) END,
+        CASE WHEN src.issue_date IS NOT NULL
+             THEN epoch_ms(src.issue_date) END,
+        CASE WHEN src.application_date IS NOT NULL
+             THEN CAST(epoch_ms(src.application_date) AS DATE) END,
+        CASE WHEN src.final_date IS NOT NULL
+             THEN CAST(epoch_ms(src.final_date) AS DATE) END,
         COALESCE(
-          CASE WHEN src.ISSUE_DATE IS NOT NULL
-               THEN epoch_ms(src.ISSUE_DATE) END,
-          CASE WHEN src.APPLICATION_DATE IS NOT NULL
-               THEN epoch_ms(src.APPLICATION_DATE) END,
+          CASE WHEN src.issue_date IS NOT NULL
+               THEN epoch_ms(src.issue_date) END,
+          CASE WHEN src.application_date IS NOT NULL
+               THEN epoch_ms(src.application_date) END,
           TIMESTAMP '2020-01-01'
         )
-    FROM normalized_opendata_extract.building_permits AS src
+    FROM {_SRC_SCHEMA}.building_permits AS src
     {permits_filter}
 
     UNION ALL
 
     -- ── Ward Boundaries → asset_type = 'zone' ────────────────────
     SELECT
-        'kitchener_arcgis:zone:ward_' || CAST(src.OBJECTID AS VARCHAR),
+        'kitchener_arcgis:zone:ward_' || CAST(src.objectid AS VARCHAR),
         'zone',
         'governance',
-        CAST(src.OBJECTID AS VARCHAR),
+        CAST(src.objectid AS VARCHAR),
         'kitchener_arcgis',
-        src.WARD,
+        src.ward,
         NULL, NULL, NULL,
         'active',
         'public',
@@ -150,7 +153,7 @@ def assets_query(evaluator, table_type):
         NULL,
         NULL, NULL,
         TIMESTAMP '2020-01-01'
-    FROM normalized_opendata_extract.ward_boundaries AS src
+    FROM {_SRC_SCHEMA}.ward_boundaries AS src
     {wards_filter}
     """
 

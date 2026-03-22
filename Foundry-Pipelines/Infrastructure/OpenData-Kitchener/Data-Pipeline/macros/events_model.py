@@ -1,14 +1,17 @@
 from sqlmesh import macro
 
 
+_SRC_SCHEMA = "normalized_opendata_extract"
+
+
 @macro()
 def events_query(evaluator, table_type):
     """
     Immutable event log aligned with db_schema.md `events` table.
     Domain-specific attributes are stored in the JSON payload column.
 
-    Field names match the actual Kitchener ArcGIS feature services.
-    Date fields from ArcGIS arrive as epoch-millisecond integers.
+    Column names are lowercase (DLT normalizes them).
+    Date fields from ArcGIS arrive as epoch-millisecond BIGINTs.
     """
     roads_filter = ""
     water_filter = ""
@@ -18,27 +21,27 @@ def events_query(evaluator, table_type):
     if table_type == "table":
         roads_filter = (
             "WHERE COALESCE("
-            "  CASE WHEN src.UPDATE_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.UPDATE_DATE) END, "
-            "  CASE WHEN src.CREATE_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.CREATE_DATE) END, "
+            "  CASE WHEN src.update_date IS NOT NULL "
+            "       THEN epoch_ms(src.update_date) END, "
+            "  CASE WHEN src.create_date IS NOT NULL "
+            "       THEN epoch_ms(src.create_date) END, "
             "  TIMESTAMP '2020-01-01'"
             ") BETWEEN @start_date AND @end_date"
         )
         water_filter = (
             "WHERE COALESCE("
-            "  CASE WHEN src.INSTALLATION_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.INSTALLATION_DATE) END, "
+            "  CASE WHEN src.installation_date IS NOT NULL "
+            "       THEN epoch_ms(src.installation_date) END, "
             "  TIMESTAMP '2020-01-01'"
             ") BETWEEN @start_date AND @end_date"
         )
         wards_filter = "WHERE TRUE"
         permits_filter = (
             "WHERE COALESCE("
-            "  CASE WHEN src.ISSUE_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.ISSUE_DATE) END, "
-            "  CASE WHEN src.APPLICATION_DATE IS NOT NULL "
-            "       THEN epoch_ms(src.APPLICATION_DATE) END, "
+            "  CASE WHEN src.issue_date IS NOT NULL "
+            "       THEN epoch_ms(src.issue_date) END, "
+            "  CASE WHEN src.application_date IS NOT NULL "
+            "       THEN epoch_ms(src.application_date) END, "
             "  TIMESTAMP '2020-01-01'"
             ") BETWEEN @start_date AND @end_date"
         )
@@ -46,168 +49,168 @@ def events_query(evaluator, table_type):
     return f"""--sql
     -- ── Road Events ──────────────────────────────────────────────
     SELECT
-        'kitchener_arcgis:road:' || CAST(src.OBJECTID AS VARCHAR) || ':created'
+        'kitchener_arcgis:road:' || CAST(src.objectid AS VARCHAR) || ':created'
                                       AS event_id,
-        'kitchener_arcgis:road:' || CAST(src.OBJECTID AS VARCHAR)
+        'kitchener_arcgis:road:' || CAST(src.objectid AS VARCHAR)
                                       AS asset_id,
         'created'                     AS event_type,
         'road_segment'                AS event_subtype,
         'engineering'                 AS department_source,
         'kitchener_arcgis'            AS triggered_by,
         to_json({{
-            'street':           src.STREET,
-            'street_name':      src.STREET_NAME,
-            'street_type':      src.STREET_TYPE,
-            'carto_class':      src.CARTO_CLASS,
-            'surface_type':     src.SURFACE_LAYER_TYPE,
-            'lanes':            src.LANES,
-            'speed_limit_km':   src.SPEED_LIMIT_KM,
-            'pavement_width':   src.PAVEMENT_WIDTH,
-            'ownership':        src.OWNERSHIP,
-            'status':           src.STATUS,
-            'ward_id':          src.WARDID,
-            'category':         src.CATEGORY,
-            'subcategory':      src.SUBCATEGORY
+            'street':           src.street,
+            'street_name':      src.street_name,
+            'street_type':      src.street_type,
+            'carto_class':      src.carto_class,
+            'surface_type':     src.surface_layer_type,
+            'lanes':            src.lanes,
+            'speed_limit_km':   src.speed_limit_km,
+            'pavement_width':   src.pavement_width,
+            'ownership':        src.ownership,
+            'status':           src.status,
+            'ward_id':          src.wardid,
+            'category':         src.category,
+            'subcategory':      src.subcategory
         }})                           AS payload,
         'info'                        AS severity,
         COALESCE(
-          CASE WHEN src.CREATE_DATE IS NOT NULL
-               THEN epoch_ms(src.CREATE_DATE) END,
+          CASE WHEN src.create_date IS NOT NULL
+               THEN epoch_ms(src.create_date) END,
           TIMESTAMP '2020-01-01'
         )                             AS occurred_at,
         COALESCE(
-          CASE WHEN src.UPDATE_DATE IS NOT NULL
-               THEN epoch_ms(src.UPDATE_DATE) END,
-          CASE WHEN src.CREATE_DATE IS NOT NULL
-               THEN epoch_ms(src.CREATE_DATE) END,
+          CASE WHEN src.update_date IS NOT NULL
+               THEN epoch_ms(src.update_date) END,
+          CASE WHEN src.create_date IS NOT NULL
+               THEN epoch_ms(src.create_date) END,
           TIMESTAMP '2020-01-01'
         )                             AS recorded_at,
         FALSE                         AS is_audit_event,
         COALESCE(
-          CASE WHEN src.UPDATE_DATE IS NOT NULL
-               THEN epoch_ms(src.UPDATE_DATE) END,
-          CASE WHEN src.CREATE_DATE IS NOT NULL
-               THEN epoch_ms(src.CREATE_DATE) END,
+          CASE WHEN src.update_date IS NOT NULL
+               THEN epoch_ms(src.update_date) END,
+          CASE WHEN src.create_date IS NOT NULL
+               THEN epoch_ms(src.create_date) END,
           TIMESTAMP '2020-01-01'
         )                             AS record_time
-    FROM normalized_opendata_extract.road_segments AS src
+    FROM {_SRC_SCHEMA}.road_segments AS src
     {roads_filter}
 
     UNION ALL
 
     -- ── Water Main Events ────────────────────────────────────────
     SELECT
-        'kitchener_arcgis:pipe:' || CAST(src.OBJECTID AS VARCHAR) || ':created',
-        'kitchener_arcgis:pipe:' || CAST(src.OBJECTID AS VARCHAR),
+        'kitchener_arcgis:pipe:' || CAST(src.objectid AS VARCHAR) || ':created',
+        'kitchener_arcgis:pipe:' || CAST(src.objectid AS VARCHAR),
         'created',
         'water_main',
         'utilities',
         'kitchener_arcgis',
         to_json({{
-            'material':        src.MATERIAL,
-            'pipe_size':       src.PIPE_SIZE,
-            'pressure_zone':   src.PRESSURE_ZONE,
-            'status':          src.STATUS,
-            'category':        src.CATEGORY,
-            'lined':           src.LINED,
-            'ownership':       src.OWNERSHIP,
-            'condition_score': src.CONDITION_SCORE,
-            'criticality':     src.CRITICALITY
+            'material':        src.material,
+            'pipe_size':       src.pipe_size,
+            'pressure_zone':   src.pressure_zone,
+            'status':          src.status,
+            'category':        src.category,
+            'lined':           src.lined,
+            'ownership':       src.ownership,
+            'condition_score': src.condition_score,
+            'criticality':     src.criticality
         }}),
         'info',
         COALESCE(
-          CASE WHEN src.INSTALLATION_DATE IS NOT NULL
-               THEN epoch_ms(src.INSTALLATION_DATE) END,
+          CASE WHEN src.installation_date IS NOT NULL
+               THEN epoch_ms(src.installation_date) END,
           TIMESTAMP '2020-01-01'
         ),
         COALESCE(
-          CASE WHEN src.INSTALLATION_DATE IS NOT NULL
-               THEN epoch_ms(src.INSTALLATION_DATE) END,
+          CASE WHEN src.installation_date IS NOT NULL
+               THEN epoch_ms(src.installation_date) END,
           TIMESTAMP '2020-01-01'
         ),
         FALSE,
         COALESCE(
-          CASE WHEN src.INSTALLATION_DATE IS NOT NULL
-               THEN epoch_ms(src.INSTALLATION_DATE) END,
+          CASE WHEN src.installation_date IS NOT NULL
+               THEN epoch_ms(src.installation_date) END,
           TIMESTAMP '2020-01-01'
         )
-    FROM normalized_opendata_extract.water_mains AS src
+    FROM {_SRC_SCHEMA}.water_mains AS src
     {water_filter}
 
     UNION ALL
 
     -- ── Permit Events ────────────────────────────────────────────
     SELECT
-        'kitchener_arcgis:permit:' || CAST(src.OBJECTID AS VARCHAR) || ':issued',
-        'kitchener_arcgis:permit:' || CAST(src.OBJECTID AS VARCHAR),
+        'kitchener_arcgis:permit:' || CAST(src.objectid AS VARCHAR) || ':issued',
+        'kitchener_arcgis:permit:' || CAST(src.objectid AS VARCHAR),
         'permit_issued',
-        LOWER(COALESCE(src.PERMIT_TYPE, 'unknown')) || '_permit',
+        LOWER(COALESCE(src.permit_type, 'unknown')) || '_permit',
         'planning',
         'kitchener_arcgis',
         to_json({{
-            'permit_number':      src.PERMITNO,
-            'permit_type':        src.PERMIT_TYPE,
-            'permit_status':      src.PERMIT_STATUS,
-            'work_type':          src.WORK_TYPE,
-            'sub_work_type':      src.SUB_WORK_TYPE,
-            'description':        src.PERMIT_DESCRIPTION,
-            'construction_value': src.CONSTRUCTION_VALUE,
-            'total_units':        src.TOTAL_UNITS,
-            'units_created':      src.UNITS_CREATED,
-            'units_lost':         src.UNITS_LOST,
-            'folder_name':        src.FOLDERNAME,
-            'issue_year':         src.ISSUE_YEAR
+            'permit_number':      src.permitno,
+            'permit_type':        src.permit_type,
+            'permit_status':      src.permit_status,
+            'work_type':          src.work_type,
+            'sub_work_type':      src.sub_work_type,
+            'description':        src.permit_description,
+            'construction_value': src.construction_value,
+            'total_units':        src.total_units,
+            'units_created':      src.units_created,
+            'units_lost':         src.units_lost,
+            'folder_name':        src.foldername,
+            'issue_year':         src.issue_year
         }}),
         'info',
         COALESCE(
-          CASE WHEN src.ISSUE_DATE IS NOT NULL
-               THEN epoch_ms(src.ISSUE_DATE) END,
-          CASE WHEN src.APPLICATION_DATE IS NOT NULL
-               THEN epoch_ms(src.APPLICATION_DATE) END,
+          CASE WHEN src.issue_date IS NOT NULL
+               THEN epoch_ms(src.issue_date) END,
+          CASE WHEN src.application_date IS NOT NULL
+               THEN epoch_ms(src.application_date) END,
           TIMESTAMP '2020-01-01'
         ),
         COALESCE(
-          CASE WHEN src.ISSUE_DATE IS NOT NULL
-               THEN epoch_ms(src.ISSUE_DATE) END,
-          CASE WHEN src.APPLICATION_DATE IS NOT NULL
-               THEN epoch_ms(src.APPLICATION_DATE) END,
+          CASE WHEN src.issue_date IS NOT NULL
+               THEN epoch_ms(src.issue_date) END,
+          CASE WHEN src.application_date IS NOT NULL
+               THEN epoch_ms(src.application_date) END,
           TIMESTAMP '2020-01-01'
         ),
         FALSE,
         COALESCE(
-          CASE WHEN src.ISSUE_DATE IS NOT NULL
-               THEN epoch_ms(src.ISSUE_DATE) END,
-          CASE WHEN src.APPLICATION_DATE IS NOT NULL
-               THEN epoch_ms(src.APPLICATION_DATE) END,
+          CASE WHEN src.issue_date IS NOT NULL
+               THEN epoch_ms(src.issue_date) END,
+          CASE WHEN src.application_date IS NOT NULL
+               THEN epoch_ms(src.application_date) END,
           TIMESTAMP '2020-01-01'
         )
-    FROM normalized_opendata_extract.building_permits AS src
+    FROM {_SRC_SCHEMA}.building_permits AS src
     {permits_filter}
 
     UNION ALL
 
     -- ── Ward Boundary Events ─────────────────────────────────────
     SELECT
-        'kitchener_arcgis:zone:ward_' || CAST(src.OBJECTID AS VARCHAR) || ':created',
-        'kitchener_arcgis:zone:ward_' || CAST(src.OBJECTID AS VARCHAR),
+        'kitchener_arcgis:zone:ward_' || CAST(src.objectid AS VARCHAR) || ':created',
+        'kitchener_arcgis:zone:ward_' || CAST(src.objectid AS VARCHAR),
         'created',
         'ward_boundary',
         'governance',
         'kitchener_arcgis',
         to_json({{
-            'ward_id':             src.WARDID,
-            'ward_name':           src.WARD,
-            'councillor_name':     src.COUNCILLOR_NAME,
-            'residential_households': src.RESIDENTIAL_HOUSEHOLD_COUNT,
-            'mpac_population':     src.MPAC_POPULATION,
-            'mpac_voters':         src.MPAC_VOTERS
+            'ward_id':             src.wardid,
+            'ward_name':           src.ward,
+            'councillor_name':     src.councillor_name,
+            'residential_households': src.residential_household_count,
+            'mpac_population':     src.mpac_population,
+            'mpac_voters':         src.mpac_voters
         }}),
         'info',
         TIMESTAMP '2020-01-01',
         TIMESTAMP '2020-01-01',
         FALSE,
         TIMESTAMP '2020-01-01'
-    FROM normalized_opendata_extract.ward_boundaries AS src
+    FROM {_SRC_SCHEMA}.ward_boundaries AS src
     {wards_filter}
     """
 
