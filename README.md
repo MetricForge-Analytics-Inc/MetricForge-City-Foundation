@@ -144,3 +144,7 @@ Just as investing in water infrastructure in the 1800s transformed public health
 
 Your challenge is to design the blueprint that makes this transformation possible—showing municipalities not just why data infrastructure matters, but how to build it.
 
+## More Info
+ - https://docs.google.com/spreadsheets/d/1i1MSefZNf1u7hEU3rZOfjhiCzUod8OcDfJP7045yxkY/edit?gid=0#gid=0
+ - https://open-kitchenergis.opendata.arcgis.com/pages/open-data-listing
+ - https://docs.google.com/document/d/1-oPEGOWrgWSYgQgUzZe9uYGK0UyK1Ai1/edit
