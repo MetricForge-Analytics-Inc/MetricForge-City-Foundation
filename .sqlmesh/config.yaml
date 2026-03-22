@@ -1,22 +1,23 @@
 gateways:
-  motherduck:
+  local:
     connection:
       # For more information on configuring the connection to your execution engine, visit:
       # https://sqlmesh.readthedocs.io/en/stable/reference/configuration/#connections
-      # https://sqlmesh.readthedocs.io/en/stable/integrations/engines/motherduck/#prerequisites
-      type: motherduck
-      token: {{env_var('MOTHERDUCK_TOKEN')}}
-    state_connection:
-      type: postgres
-      host: {{env_var('SQLMESH_POSTGRES_HOST')}}
-      port: {{env_var('SQLMESH_POSTGRES_PORT')}}
-      user: {{env_var('SQLMESH_POSTGRES_USER')}}
-      password: {{env_var('SQLMESH_POSTGRES_PASSWORD')}}
-      database: {{env_var('SQLMESH_POSTGRES_DATABASE')}}
+      # https://sqlmesh.readthedocs.io/en/stable/integrations/engines/duckdb/
+      type: duckdb
+      database: db/metricforge.duckdb
+    # In Docker / CI the state backend is PostgreSQL:
+    # state_connection:
+    #   type: postgres
+    #   host: {{env_var('SQLMESH_POSTGRES_HOST')}}
+    #   port: {{env_var('SQLMESH_POSTGRES_PORT')}}
+    #   user: {{env_var('SQLMESH_POSTGRES_USER')}}
+    #   password: {{env_var('SQLMESH_POSTGRES_PASSWORD')}}
+    #   database: {{env_var('SQLMESH_POSTGRES_DATABASE')}}
 
 
-default_gateway: motherduck
-default_target_environment: {{ env_var('CODESPACE_NAME') }}
+default_gateway: local
+default_target_environment: local
 
 # --- Model Defaults ---
 # https://sqlmesh.readthedocs.io/en/stable/reference/model_configuration/#model-defaults

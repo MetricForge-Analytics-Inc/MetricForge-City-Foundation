@@ -11,13 +11,11 @@ Municipal data infrastructure platform — treating data as foundational city in
 ```
 Prefect (Orchestration)
   │
-  ├─► DLT (Extract)       ArcGIS Open Data / Municipal APIs → MotherDuck (normalized extract)
+  ├─► DLT (Extract)       ArcGIS Open Data / Municipal APIs → Local DuckDB (normalized extract)
   │
   ├─► SQLMesh (Transform)  normalized → atomic → integration → details views
   │
-  ├─► Cube (Semantic)      YAML cubes with time-attributed measures
-  │
-  └─► Evidence (Visualize) Markdown dashboards via Cube's Postgres API
+  └─► Evidence (Visualize) Markdown dashboards querying DuckDB views directly
 ```
 
 ## Directory Layout
@@ -25,18 +23,18 @@ Prefect (Orchestration)
 | Folder | Purpose |
 |---|---|
 | `Foundry-Orchestration/` | Prefect flow that runs extract → transform |
-| `Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract/` | DLT pipeline pulling Kitchener Open Data (ArcGIS Hub) into MotherDuck |
+| `Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract/` | DLT pipeline pulling Kitchener Open Data (ArcGIS Hub) into local DuckDB |
 | `Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Pipeline/` | SQLMesh models, macros, audits, tests for municipal data |
 | `Foundry-Semantic-Cubes/City/` | Cube.js YAML definitions for infrastructure, permits, water, wards |
 | `Foundry-Visualization/` | Evidence dashboards and source queries |
-| `.sqlmesh/` | SQLMesh gateway config (MotherDuck + Supabase state) |
+| `.sqlmesh/` | SQLMesh gateway config (local DuckDB + Postgres state) |
 | `.devcontainer/` | Codespace setup — installs all Python/Node deps |
 | `.githooks/` | `prepare-commit-msg` prefixes commits with branch name |
 
 ## Quick Start
 
 1. **Open in Codespace** — `postCreateCommand.sh` installs everything automatically.
-2. **Set environment variables** — `MOTHERDUCK_TOKEN`, `POSTGRES_HOST/PORT/USER/PASSWORD/DATABASE`.
+2. **Set environment variables** — `SQLMESH_POSTGRES_HOST/PORT/USER/PASSWORD/DATABASE`.
 3. **Run the city data pipeline**:
 
 ```bash

@@ -9,13 +9,12 @@
     },
     "editor.quickSuggestionsDelay": 300,
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": [],
     "sqltools.useNodeRuntime": true,
     "sqltools.connections": [
         {
-            "name": "MotherDuck – Foundry",
+            "name": "Local DuckDB – Foundry",
             "driver": "DuckDB",
-            "database": "md:Foundry?motherduck_token=${MOTHERDUCK_CODESPACE_TOKEN}"
+            "database": "db/metricforge.duckdb"
         }
     ]
 }

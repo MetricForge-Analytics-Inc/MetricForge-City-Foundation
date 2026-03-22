@@ -78,4 +78,4 @@ plugins:
     "@evidence-dev/snowflake": { }
     "@evidence-dev/sqlite": { }
     "@evidence-dev/trino": { }
-    "@evidence-dev/motherduck": { }
+

@@ -2,33 +2,27 @@ from sqlmesh import macro
 
 
 @macro()
-def water_mains_atomic_query(evaluator, table_type):
-    query_suffix = ""
-    if table_type == "table":
-        query_suffix = """
-    WHERE
-        COALESCE(mains.EditDate, mains.CreatedDate, TIMESTAMP '2020-01-01')
-        BETWEEN @start_date AND @end_date
-        """
-
-    return f"""--sql
+def water_mains_atomic_query(evaluator):
+    """Extracts water-main-specific attributes from the universal assets + events tables."""
+    return """--sql
     SELECT
-        mains.OBJECTID             AS main_id,
-        mains.PIPE_MATERIAL        AS pipe_material,
-        mains.DIAMETER             AS diameter_mm,
-        mains.INSTALL_YEAR         AS install_year,
-        mains.LENGTH_M             AS segment_length_m,
-        mains.PRESSURE_ZONE        AS pressure_zone,
-        mains.PIPE_STATUS          AS pipe_status,
-        mains.OWNERSHIP            AS ownership,
-        mains.WARD                 AS ward,
-        mains.CreatedDate          AS created_time,
-        mains.EditDate             AS last_updated_time,
-        COALESCE(mains.EditDate, mains.CreatedDate, TIMESTAMP '2020-01-01')
-                                   AS record_time
-    FROM
-        Foundry.normalized_opendata_extract.water_mains AS mains
-    {query_suffix}
+        CAST(a.source_system_id AS INTEGER)                                      AS main_id,
+        json_extract_string(e.payload, '$.material')                             AS pipe_material,
+        TRY_CAST(json_extract_string(e.payload, '$.pipe_size') AS DOUBLE)        AS pipe_size,
+        json_extract_string(e.payload, '$.pressure_zone')                        AS pressure_zone,
+        json_extract_string(e.payload, '$.status')                               AS pipe_status,
+        json_extract_string(e.payload, '$.category')                             AS category,
+        json_extract_string(e.payload, '$.lined')                                AS lined,
+        json_extract_string(e.payload, '$.ownership')                            AS ownership,
+        TRY_CAST(json_extract_string(e.payload, '$.condition_score') AS DOUBLE)  AS condition_score,
+        json_extract_string(e.payload, '$.criticality')                          AS criticality,
+        a.created_at                                                             AS install_date,
+        a.record_time
+    FROM city.assets_view AS a
+    JOIN city.events_view AS e
+        ON a.asset_id = e.asset_id
+    WHERE a.asset_type = 'pipe'
+      AND e.event_subtype = 'water_main'
     """
 
 

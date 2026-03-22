@@ -1,12 +1,12 @@
 # ─────────────────────────────────────────────────────────────────
 #  Development Permits Cube
 #  Time-attributed by: record_time (issued or application date)
-#  Source view: Foundry.city.development_details_view
+#  Source view: city.development_details_view
 # ─────────────────────────────────────────────────────────────────
 
 cubes:
   - name: development_permits
-    sql_table: Foundry.city.development_details_view
+    sql_table: city.development_details_view
     description: >
       Building permits enriched with ward demographics and infrastructure
       capacity metrics.  Enables housing-vs-infrastructure analysis.
