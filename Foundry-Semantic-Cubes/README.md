@@ -31,7 +31,7 @@ After startup:
 - Docker Desktop running
 - Pipeline executed at least once (`python Foundry-Orchestration/City-Main.py`)
 
-The DuckDB file is mounted read-only into the container — the pipeline writes data, Cube reads it.
+The DuckDB file is mounted into the container — the pipeline writes data, Cube reads it.
 
 ## Why Time Attribution Matters
 
@@ -47,7 +47,7 @@ In Cube.js, when a user applies a date filter (e.g. "last 30 days"), that filter
 
 ### 1. `infrastructure_assets` — Cross-Departmental Infrastructure
 
-**Source:** `city.infrastructure_integration_view`
+**Source:** `city__local.infrastructure_integration_view`
 **Time dimension:** `record_time`
 
 Joins roads, ward boundaries, and aggregated water main statistics to create a cross-departmental infrastructure view.
@@ -55,65 +55,64 @@ Joins roads, ward boundaries, and aggregated water main statistics to create a c
 | Measure | Type | Description |
 |---|---|---|
 | `total_road_segments` | count | Total number of road segment records |
-| `total_road_length_km` | sum | Total road network length in kilometres |
-| `avg_road_length_m` | avg | Average segment length in metres |
-| `total_water_mains_in_ward` | max | Water main count in the road's ward (pre-aggregated) |
-| `oldest_water_infrastructure_year` | min | Oldest water main install year in the ward |
-| `total_water_network_km` | max | Total water pipe length in the ward (km) |
+| `total_water_mains_in_ward` | max | Water mains count (pre-aggregated) |
+| `distinct_pipe_materials` | max | Number of distinct pipe materials in the water network |
 | `ward_population` | max | Ward population from boundary data |
+| `ward_households` | max | Number of residential households in the ward |
 
-**Key dimensions:** `road_name`, `road_classification`, `surface_type`, `surface_condition`, `number_of_lanes`, `speed_limit_kmh`, `road_ownership`, `maintenance_responsibility`, `ward`, `ward_name`, `councillor`
+**Key dimensions:** `road_name`, `road_classification`, `surface_type`, `category`, `subcategory`, `number_of_lanes`, `speed_limit_kmh`, `pavement_width_m`, `road_ownership`, `road_status`, `ward_id`, `ward_name`, `councillor`
 
 ---
 
 ### 2. `development_permits` — Housing & Development
 
-**Source:** `city.development_details_view`
+**Source:** `city__local.development_details_view`
 **Time dimension:** `record_time`
 
-Building permits enriched with ward demographics and infrastructure capacity metrics. Enables the **housing-vs-infrastructure capacity analysis** that directly addresses the problem statement (housing paused due to water capacity).
+Building permits with construction values and unit tracking. Enables the **housing-vs-infrastructure capacity analysis** that directly addresses the problem statement (housing paused due to water capacity).
 
 | Measure | Type | Description |
 |---|---|---|
 | `total_permits` | count | Total building permit count |
-| `total_estimated_value` | sum | Sum of estimated permit values |
-| `avg_estimated_value` | avg | Average permit value |
-| `total_actual_value` | sum | Sum of actual values (where reported) |
+| `total_construction_value` | sum | Sum of construction values |
+| `avg_construction_value` | avg | Average permit construction value |
+| `total_units_created` | sum | Total housing units created |
+| `total_units` | sum | Total units across permits |
 | `residential_permits` | sum | Count of residential-type permits |
 | `commercial_permits` | sum | Count of commercial-type permits |
 | `completed_permits` | sum | Count of completed permits |
-| `ward_population` | max | Population in the permit's ward |
-| `ward_water_mains` | max | Water main count — infrastructure capacity proxy |
-| `permits_per_ward` | max | Total permits in the same ward |
-| `development_intensity` | max | Total estimated value of all permits in the ward |
+| `year_permits_count` | max | Total permits in the same issue year (pre-aggregated) |
+| `year_construction_value` | max | Total construction value in the same issue year |
+| `year_units_created` | max | Total units created in the same issue year |
 
-**Key dimensions:** `permit_number`, `permit_type`, `permit_status`, `work_type`, `address`, `ward`, `ward_name`, `neighbourhood`, `councillor`, `application_date`, `issued_date`, `completed_date`
+**Key dimensions:** `permit_number`, `permit_type`, `permit_status`, `work_type`, `sub_work_type`, `permit_description`, `address`, `issue_year`, `application_date`, `issued_date`
 
 ---
 
 ### 3. `water_infrastructure` — Water Distribution Network
 
-**Source:** `city.water_mains_atomic_view`
+**Source:** `city__local.water_mains_atomic_view`
 **Time dimension:** `record_time`
 
-Water distribution main pipes — age analysis, material breakdown, and capacity indicators by ward.
+Water distribution main pipes — age analysis, material breakdown, condition scoring, and criticality ratings.
 
 | Measure | Type | Description |
 |---|---|---|
 | `total_mains` | count | Total water main count |
-| `total_length_km` | sum | Total network length (km) |
-| `avg_diameter_mm` | avg | Average pipe diameter (mm) |
-| `oldest_install_year` | min | Earliest install year |
-| `newest_install_year` | max | Most recent install year |
+| `avg_pipe_size` | avg | Average pipe size |
+| `avg_condition_score` | avg | Average condition score |
+| `avg_criticality` | avg | Average criticality rating |
+| `oldest_install_date` | min | Earliest install date |
+| `newest_install_date` | max | Most recent install date |
 | `avg_pipe_age_years` | avg | Average age of water mains in years |
 
-**Key dimensions:** `pipe_material`, `pipe_status`, `pressure_zone`, `ownership`, `ward`, `install_year`, `diameter_mm`
+**Key dimensions:** `pipe_material`, `pipe_status`, `pressure_zone`, `ownership`, `category`, `lined`, `pipe_size`, `condition_score`, `criticality`, `install_date`
 
 ---
 
 ### 4. `ward_overview` — Geographic Governance
 
-**Source:** `city.boundaries_atomic_view`
+**Source:** `city__local.boundaries_atomic_view`
 **Time dimension:** `record_time`
 
 Ward-level demographics and governance. Serves as the **geographic join key** for cross-departmental analysis.
@@ -122,9 +121,10 @@ Ward-level demographics and governance. Serves as the **geographic join key** fo
 |---|---|---|
 | `total_wards` | count | Number of wards |
 | `total_population` | sum | Total city population |
-| `total_area_sq_km` | sum | Total area (km²) |
 | `avg_population_per_ward` | avg | Average population per ward |
-| `population_density_per_sq_km` | avg | Average population density |
+| `total_residential_households` | sum | Total residential households |
+| `total_voters` | sum | Total registered voters |
+| `avg_voters_per_ward` | avg | Average voters per ward |
 
 **Key dimensions:** `ward_number`, `ward_name`, `councillor`
 

@@ -25,7 +25,7 @@ flowchart LR
     subgraph PIPELINE ["City Data Pipeline"]
         direction TB
         subgraph EXTRACT ["Extract (DLT)"]
-            DLT(["opendata_pipeline.py<br/>ArcGIS REST API → MotherDuck"]):::process
+            DLT(["opendata_pipeline.py<br/>ArcGIS REST API → Local DuckDB"]):::process
         end
         subgraph TRANSFORM ["Transform (SQLMesh)"]
             direction TB
@@ -79,19 +79,17 @@ flowchart TB
 
     FLOW["City-Main.py<br/>@flow(name='city-pipeline')"]:::process
     T1(["@task: extract<br/>Runs opendata_pipeline.py"]):::process
-    T2(["@task: transform<br/>Runs sqlmesh plan prod"]):::process
+    T2(["@task: transform<br/>Runs sqlmesh plan local"]):::process
+    T3(["@task: cube-refresh<br/>Pings Cube.js /meta"]):::process
 
-    ENV{{"Environment Variables<br/>MOTHERDUCK_TOKEN<br/>SQLMESH_POSTGRES_*"}}:::config
+    FLOW --> T1 --> T2 --> T3
 
-    FLOW --> T1 --> T2
-    ENV -.-> T1
-    ENV -.-> T2
-
-    T1 -->|subprocess call| EXTRACT["opendata_pipeline.py<br/>DLT → MotherDuck"]:::process
-    T2 -->|subprocess call| SQLMESH["sqlmesh plan prod<br/>--auto-apply --no-prompts"]:::process
+    T1 -->|subprocess call| EXTRACT["opendata_pipeline.py<br/>DLT → Local DuckDB"]:::process
+    T2 -->|subprocess call| SQLMESH["sqlmesh plan local<br/>--auto-apply --no-prompts"]:::process
+    T3 -->|HTTP GET| CUBE["Cube.js REST API<br/>localhost:4000 (best-effort)"]:::process
 ```
 
-The orchestrator (`City-Main.py`) is parameterised by `--theme` and `--site`, defaulting to `Infrastructure` / `OpenData-Kitchener`. This enables adding new municipal pipelines (e.g. `PublicHealth` / `Region-Waterloo`) without modifying orchestration code.
+The orchestrator (`City-Main.py`) is parameterised by `--theme` and `--site`, defaulting to `Infrastructure` / `OpenData-Kitchener`. This enables adding new municipal pipelines (e.g. `PublicHealth` / `Region-Waterloo`) without modifying orchestration code. The third task (`cube-refresh`) is best-effort — if Cube.js is not running, the pipeline still completes successfully.
 
 ### Step 2 — Extraction (DLT)
 
@@ -104,25 +102,25 @@ flowchart TB
 
     subgraph API ["ArcGIS REST API — Kitchener Open Data"]
         direction TB
-        A1(["15 Feature Layers<br/>road_segments, bridges, water_mains<br/>sanitary_sewers, storm_sewers<br/>building_permits, zoning, official_plan_land_use<br/>ward_boundaries, neighbourhood_boundaries<br/>parks, tree_inventory<br/>transit_routes, transit_stops<br/>property_boundaries"]):::source
+        A1(["11 Feature Layers<br/>road_segments, water_mains<br/>building_permits<br/>ward_boundaries<br/>parks, tree_inventory<br/>transit_routes, transit_stops<br/>etc."]):::source
     end
 
-    PIPELINE(["dlt.pipeline<br/>destination = motherduck<br/>dataset = normalized_opendata_extract"]):::process
+    PIPELINE(["dlt.pipeline<br/>destination = duckdb<br/>dataset = normalized_opendata_extract"]):::process
 
-    subgraph DUCK ["MotherDuck (OLAP Warehouse)"]
+    subgraph DUCK ["Local DuckDB (db/metricforge.duckdb)"]
         direction TB
         T1[("road_segments")]:::db
         T2[("water_mains")]:::db
         T3[("building_permits")]:::db
         T4[("ward_boundaries")]:::db
-        T5[("... 15 datasets total")]:::db
+        T5[("... 11 datasets total")]:::db
     end
 
     A1 -->|"paginated JSON<br/>resultOffset pagination"| PIPELINE
     PIPELINE -->|"write_disposition: replace"| DUCK
 ```
 
-The `arcgis_source.py` module provides a `DATASET_CATALOG` dictionary mapping friendly names to ArcGIS Feature Server URLs. Adding a new dataset is a single dictionary entry — the pagination, schema inference, and loading are handled by DLT automatically.
+The `arcgis_source.py` module provides a `DATASET_CATALOG` dictionary mapping friendly names to ArcGIS Feature Server URLs (org: `qAo1OsXi67t7XgmS`). Adding a new dataset is a single dictionary entry — the pagination, schema inference, and loading are handled by DLT automatically. Data lands in the `normalized_opendata_extract` schema within the local DuckDB file.
 
 ### Step 3 — Transformation (SQLMesh)
 
@@ -133,7 +131,7 @@ flowchart TD
     classDef db fill:none,color:#e0e0e0,stroke:#9b8ab8,stroke-width:2.5px
 
     subgraph BRONZE ["Bronze — Raw Landing (DLT)"]
-        BT[("Foundry.normalized_opendata_extract<br/>road_segments, water_mains, building_permits<br/>ward_boundaries, parks, etc.")]:::db
+        BT[("normalized_opendata_extract<br/>road_segments, water_mains, building_permits<br/>ward_boundaries, parks, etc.")]:::db
     end
 
     subgraph SILVER ["Silver — Atomic (Standardised)"]
@@ -177,20 +175,20 @@ flowchart TD
     classDef db fill:none,color:#e0e0e0,stroke:#9b8ab8,stroke-width:2.5px
     classDef config fill:none,color:#e0e0e0,stroke:#d4797a,stroke-width:2.5px
 
-    SOURCE1[("Foundry.city<br/>infrastructure_integration_view")]:::db
-    SOURCE2[("Foundry.city<br/>development_details_view")]:::db
-    SOURCE3[("Foundry.city<br/>water_mains_atomic_view")]:::db
-    SOURCE4[("Foundry.city<br/>boundaries_atomic_view")]:::db
+    SOURCE1[("city__local<br/>infrastructure_integration_view")]:::db
+    SOURCE2[("city__local<br/>development_details_view")]:::db
+    SOURCE3[("city__local<br/>water_mains_atomic_view")]:::db
+    SOURCE4[("city__local<br/>boundaries_atomic_view")]:::db
 
     subgraph CUBES ["Cube.js Semantic Cubes"]
         direction TB
-        C1["infrastructure_assets<br/>time: record_time<br/>road segments, lengths, conditions<br/>ward population, water main counts"]:::semantic
-        C2["development_permits<br/>time: record_time<br/>permit counts, values<br/>residential vs commercial<br/>infrastructure capacity per ward"]:::semantic
-        C3["water_infrastructure<br/>time: record_time<br/>pipe counts, lengths, materials<br/>avg age, install year range"]:::semantic
-        C4["ward_overview<br/>time: record_time<br/>population, area, density<br/>councillor assignments"]:::semantic
+        C1["infrastructure_assets<br/>time: record_time<br/>road segments, ownership<br/>ward population, water main counts"]:::semantic
+        C2["development_permits<br/>time: record_time<br/>permit counts, construction values<br/>residential vs commercial"]:::semantic
+        C3["water_infrastructure<br/>time: record_time<br/>pipe counts, materials<br/>condition score, criticality, avg age"]:::semantic
+        C4["ward_overview<br/>time: record_time<br/>population, households, voters<br/>councillor assignments"]:::semantic
     end
 
-    PG["Cube.js Postgres SQL API<br/>port 5432"]:::config
+    PG["Cube.js APIs<br/>REST: port 4000<br/>SQL: port 15432"]:::config
 
     SOURCE1 --> C1
     SOURCE2 --> C2
@@ -202,7 +200,7 @@ flowchart TD
     C4 --> PG
 ```
 
-Each cube is **time-attributed** — bound to `record_time` so that date filters answer the right temporal question. Evidence dashboards use `MEASURE()` syntax to query pre-defined metrics.
+Each cube is **time-attributed** — bound to `record_time` so that date filters answer the right temporal question. Cube.js runs locally via Docker (`cubejs/cube:v1.3`) with the DuckDB file mounted as a volume. Evidence dashboards query the DuckDB views directly.
 
 ### Step 5 — Visualization (Evidence)
 
@@ -213,7 +211,7 @@ flowchart LR
     classDef portal fill:none,color:#e0e0e0,stroke:#c084fc,stroke-width:2.5px
     classDef config fill:none,color:#e0e0e0,stroke:#d4797a,stroke-width:2.5px
 
-    PG["Cube.js Postgres API"]:::config
+    PG["DuckDB (Direct Connection)<br/>Evidence reads from<br/>db/metricforge.duckdb"]:::config
     SQL["Evidence Source Queries<br/>sources/City/*.sql"]:::semantic
 
     subgraph PAGES ["Evidence Markdown Dashboards"]
@@ -225,7 +223,7 @@ flowchart LR
         P5["/governance — Catalog & RBAC"]:::portal
     end
 
-    PG ==>|"SELECT MEASURE<br/>FROM infrastructure_assets"| SQL
+    PG ==>|\"SELECT ... FROM<br/>city__local.*\"| SQL
     SQL ==> PAGES
 ```
 
@@ -240,29 +238,26 @@ flowchart TB
     classDef db fill:none,color:#e0e0e0,stroke:#9b8ab8,stroke-width:2.5px
     classDef secret fill:none,color:#e0e0e0,stroke:#ef4444,stroke-width:2.5px
 
-    subgraph SECRETS ["Environment Variables"]
-        MD_TOKEN["MotherDuck<br/>MOTHERDUCK_TOKEN"]:::secret
-        PG_CREDS["Postgres (SQLMesh State)<br/>SQLMESH_POSTGRES_HOST/PORT<br/>USER/PASSWORD/DATABASE"]:::secret
-        CUBE_CREDS["Cube.js Postgres API<br/>CUBE_POSTGRES_HOST/PORT<br/>USER/PASSWORD/DATABASE"]:::secret
+    subgraph SECRETS ["Configuration"]
+        DB_PATH["DuckDB Path<br/>db/metricforge.duckdb"]:::secret
+        CUBE_CFG["Cube.js Config<br/>cube.py + docker-compose.yaml"]:::secret
     end
 
-    subgraph CONTAINERS ["Docker Containers"]
-        C1["Orchestration Container<br/>ubuntu:22.04 + Python 3.13<br/>Prefect + DLT + SQLMesh"]:::process
-        C2["Visualization Container<br/>ubuntu:22.04 + Node 20<br/>Evidence + npm"]:::process
+    subgraph CONTAINERS ["Runtime"]
+        C1["Orchestration<br/>Python 3.11+<br/>Prefect + DLT + SQLMesh"]:::process
+        C3["Cube.js Container<br/>cubejs/cube:v1.3<br/>Docker"]:::process
+        C2["Visualization<br/>Evidence<br/>npm run dev"]:::process
     end
 
     subgraph STORAGE ["Data Storage"]
-        DUCK[("MotherDuck<br/>OLAP Warehouse")]:::db
-        PG_STATE[("Postgres<br/>SQLMesh State")]:::db
-        CUBE_PG[("Cube.js<br/>Postgres SQL API")]:::db
+        DUCK[("Local DuckDB<br/>db/metricforge.duckdb")]:::db
     end
 
-    MD_TOKEN --> C1
-    PG_CREDS --> C1
-    CUBE_CREDS --> C2
+    DB_PATH --> C1
+    CUBE_CFG --> C3
     C1 --> DUCK
-    C1 --> PG_STATE
-    C2 --> CUBE_PG
+    C3 --> DUCK
+    C2 --> DUCK
 ```
 
 ---
@@ -276,8 +271,8 @@ flowchart LR
     classDef silver fill:none,color:#e0e0e0,stroke:#c0c0c0,stroke-width:2.5px
     classDef gold fill:none,color:#e0e0e0,stroke:#ffd700,stroke-width:2.5px
 
-    B["BRONZE<br/>Raw DLT Tables<br/>MotherDuck<br/>normalized_opendata_extract"]:::bronze
-    S["SILVER<br/>Atomic Models<br/>MotherDuck<br/>Foundry.city.*_atomic"]:::silver
+    B["BRONZE<br/>Raw DLT Tables<br/>Local DuckDB<br/>normalized_opendata_extract"]:::bronze
+    S["SILVER<br/>Atomic Models<br/>city__local.*_atomic"]:::silver
     G["GOLD<br/>Semantic Metrics<br/>Cube.js Cubes<br/>infrastructure, permits, water, wards"]:::gold
     P["PRESENTATION<br/>Evidence Dashboards<br/>City Data OS"]:::gold
 
@@ -302,22 +297,22 @@ flowchart TB
             B["Prefect 3.x<br/>@flow / @task"]:::layer
         end
         subgraph EXT ["Extraction"]
-            C["DLT (Data Load Tool)<br/>ArcGIS → MotherDuck"]:::layer
+            C["DLT (Data Load Tool)<br/>ArcGIS → Local DuckDB"]:::layer
         end
         subgraph OLAP ["OLAP Engine"]
-            D["MotherDuck / DuckDB<br/>Serverless Analytics"]:::layer
+            D["DuckDB (Local)<br/>db/metricforge.duckdb"]:::layer
         end
         subgraph XFORM ["Transformation"]
             E["SQLMesh<br/>Python macros → SQL models"]:::layer
         end
         subgraph SEM ["Semantic"]
-            F["Cube.js<br/>YAML cubes, Postgres API"]:::layer
+            F["Cube.js (Docker)<br/>YAML cubes, REST + SQL API"]:::layer
         end
         subgraph VIZL ["Visualization"]
             G["Evidence<br/>Markdown dashboards"]:::layer
         end
         subgraph INFRA ["Infrastructure"]
-            H["Docker, GitHub Actions<br/>Codespaces, GHCR"]:::layer
+            H["Docker, GitHub<br/>Local Development"]:::layer
         end
 
         SOURCES --> ORCHESTRATION --> EXT --> OLAP --> XFORM --> SEM --> VIZL

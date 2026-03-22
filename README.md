@@ -11,9 +11,11 @@ Municipal data infrastructure platform — treating data as foundational city in
 ```
 Prefect (Orchestration)
   │
-  ├─► DLT (Extract)       ArcGIS Open Data / Municipal APIs → Local DuckDB (normalized extract)
+  ├─► DLT (Extract)       ArcGIS Open Data / Municipal APIs → Local DuckDB
   │
   ├─► SQLMesh (Transform)  normalized → atomic → integration → details views
+  │
+  ├─► Cube.js (Semantic)   YAML cubes over DuckDB views (local Docker)
   │
   └─► Evidence (Visualize) Markdown dashboards querying DuckDB views directly
 ```
@@ -22,48 +24,93 @@ Prefect (Orchestration)
 
 | Folder | Purpose |
 |---|---|
-| `Foundry-Orchestration/` | Prefect flow that runs extract → transform |
+| `Foundry-Orchestration/` | Prefect flow that runs extract → transform → cube refresh |
 | `Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract/` | DLT pipeline pulling Kitchener Open Data (ArcGIS Hub) into local DuckDB |
 | `Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Pipeline/` | SQLMesh models, macros, audits, tests for municipal data |
-| `Foundry-Semantic-Cubes/City/` | Cube.js YAML definitions for infrastructure, permits, water, wards |
-| `Foundry-Visualization/` | Evidence dashboards and source queries |
-| `.sqlmesh/` | SQLMesh gateway config (local DuckDB + Postgres state) |
-| `.devcontainer/` | Codespace setup — installs all Python/Node deps |
-| `.githooks/` | `prepare-commit-msg` prefixes commits with branch name |
+| `Foundry-Semantic-Cubes/` | Cube.js Docker setup and YAML cube definitions (infrastructure, permits, water, wards) |
+| `Foundry-Visualization/` | Evidence dashboards and source queries (direct DuckDB connection) |
+| `db/` | Local DuckDB database file (`metricforge.duckdb`) |
+| `Documentation/` | Architecture diagrams, CI/CD flow documentation |
+| `.sqlmesh/` | SQLMesh workspace config |
 
 ## Quick Start
 
-1. **Open in Codespace** — `postCreateCommand.sh` installs everything automatically.
-2. **Set environment variables** — `SQLMESH_POSTGRES_HOST/PORT/USER/PASSWORD/DATABASE`.
-3. **Run the city data pipeline**:
+### Prerequisites
+
+- **Python 3.11+** with pip
+- **Docker Desktop** (for Cube.js semantic layer)
+
+### 1. Install Python dependencies
+
+```bash
+pip install -r Foundry-Orchestration/requirements.txt
+pip install -r Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract/requirements.txt
+```
+
+### 2. Run the full pipeline
 
 ```bash
 python Foundry-Orchestration/City-Main.py
 ```
 
-Or run each step manually:
+This runs three tasks in sequence:
+1. **Extract** — DLT pulls 11 datasets from Kitchener ArcGIS Open Data into `db/metricforge.duckdb`
+2. **Transform** — SQLMesh applies 10 models (atomic → integration → details views)
+3. **Cube Refresh** — Pings the local Cube.js instance to reload (best-effort, skips if not running)
+
+### 3. Start the semantic layer (Cube.js)
 
 ```bash
-# Extract (Kitchener Open Data)
+cd Foundry-Semantic-Cubes
+docker compose up -d
+```
+
+After startup:
+- **Playground UI**: http://localhost:4000
+- **REST API**: http://localhost:4000/cubejs-api/v1
+- **SQL API**: `localhost:15432` (Postgres wire protocol, user: `cube`)
+
+### 4. Start Evidence dashboards
+
+```bash
+cd Foundry-Visualization
+npm install
+npm run dev
+```
+
+### Run each pipeline step manually
+
+```bash
+# Extract (Kitchener Open Data → local DuckDB)
 python Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract/opendata_pipeline.py
 
-# Transform
-sqlmesh -p Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract \
-        -p Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Pipeline \
-        plan prod --auto-apply --no-prompts
+# Transform (SQLMesh)
+cd Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Pipeline
+sqlmesh plan local --auto-apply --no-prompts
 
-# Visualize
+# Visualize (Evidence)
 cd Foundry-Visualization && npm run dev
 ```
 
 ## Key Design Decisions
 
+- **Local DuckDB** — All data lives in a single local DuckDB file (`db/metricforge.duckdb`). No cloud connections required. The DLT pipeline writes raw data, SQLMesh creates transformed views, and both Cube.js and Evidence read from the same file.
 - **Time attribution** — Each Cube is bound to a specific datetime dimension so date filters always answer the right question. Infrastructure cubes use `record_time` (last edit/creation), permit cubes use `issued_date` or `application_date`.
 - **Table + View pairs** — SQLMesh models come in pairs: an `INCREMENTAL_BY_TIME_RANGE` table for performance and a `VIEW` for always-fresh reads. The Cube layer points at the view.
-- **Virtual environments** — SQLMesh uses virtual data environments so `prod` is a zero-copy promotion of validated snapshots.
 - **Ward as common integration key** — Geographic ward boundaries serve as the primary cross-departmental join key, enabling infrastructure × planning × utilities analysis without exposing individual-level data.
 - **Federated by design** — Each department's data lives in its own atomic model. Integration models perform the cross-departmental joins, preserving departmental autonomy while enabling holistic views.
 - **Privacy-first** — PII-containing datasets (addresses, property records) are flagged in the data catalog. Analytical views aggregate to ward/neighbourhood level by default.
+
+## Technology Stack
+
+| Layer | Tool | Version |
+|---|---|---|
+| Orchestration | Prefect | 3.x |
+| Extraction | DLT (Data Load Tool) | 1.8.x |
+| OLAP Engine | DuckDB (local) | 1.x |
+| Transformation | SQLMesh | 0.174.x |
+| Semantic Layer | Cube.js (Docker) | 1.3.x |
+| Visualization | Evidence | Latest |
 
 
 ## Problem Statement and Information

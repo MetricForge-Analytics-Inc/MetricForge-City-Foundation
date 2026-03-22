@@ -1,48 +1,58 @@
-# Evidence Template Project
+# Foundry Visualization — Evidence Dashboards
 
-## Using Codespaces
+## Overview
 
-If you are using this template in Codespaces, click the `Start Evidence` button in the bottom status bar. This will install dependencies and open a preview of your project in your browser - you should get a popup prompting you to open in browser.
+Evidence-powered markdown dashboards that query the local DuckDB database directly. Each page presents municipal data from the `city__local` schema produced by the SQLMesh transformation pipeline.
 
-Or you can use the following commands to get started:
+## Pages
+
+| Page | Route | Description |
+|---|---|---|
+| City Data OS | `/` | Overview dashboard with KPIs across all domains |
+| Infrastructure | `/infrastructure` | Road assets, conditions, and ward-level analysis |
+| Development | `/development` | Building permits, construction values, housing trends |
+| Water | `/water` | Water main materials, age distribution, condition |
+| Governance | `/governance` | Data catalog and access tier documentation |
+
+## Data Connection
+
+Evidence connects directly to the local DuckDB file via the DuckDB connector. The connection is configured in `sources/City/connection.yaml`:
+
+```yaml
+type: duckdb
+filename: ../db/metricforge.duckdb
+```
+
+SQL source queries in `sources/City/*.sql` run against the `city__local.*` views created by SQLMesh.
+
+## Getting Started
+
+### Prerequisites
+- Node.js and npm
+- Pipeline executed at least once (`python Foundry-Orchestration/City-Main.py`)
+
+### Run locally
 
 ```bash
+cd Foundry-Visualization
 npm install
 npm run sources
-npm run dev -- --host 0.0.0.0
+npm run dev
 ```
 
-See [the CLI docs](https://docs.evidence.dev/cli/) for more command information.
+## Source Queries
 
-**Note:** Codespaces is much faster on the Desktop app. After the Codespace has booted, select the hamburger menu → Open in VS Code Desktop.
-
-## Get Started from VS Code
-
-The easiest way to get started is using the [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=Evidence.evidence-vscode):
-
-
-
-1. Install the extension from the VS Code Marketplace
-2. Open the Command Palette (Ctrl/Cmd + Shift + P) and enter `Evidence: New Evidence Project`
-3. Click `Start Evidence` in the bottom status bar
-
-## Get Started using the CLI
-
-```bash
-npx degit evidence-dev/template my-project
-cd my-project 
-npm install 
-npm run sources
-npm run dev 
-```
-
-Check out the docs for [alternative install methods](https://docs.evidence.dev/getting-started/install-evidence) including Docker, Github Codespaces, and alongside dbt.
-
-
+| File | Description |
+|---|---|
+| `city_kpis.sql` | High-level KPIs across all domains |
+| `cube_by_ward.sql` | Infrastructure metrics grouped by ward |
+| `cube_permits_by_type.sql` | Permit counts by type |
+| `cube_permits_by_ward.sql` | Permits aggregated by ward |
+| `cube_road_condition.sql` | Road condition and classification analysis |
+| `cube_water_by_material.sql` | Water main breakdown by pipe material |
 
 ## Learning More
 
-- [Docs](https://docs.evidence.dev/)
-- [Github](https://github.com/evidence-dev/evidence)
-- [Slack Community](https://slack.evidence.dev/)
+- [Evidence Docs](https://docs.evidence.dev/)
+- [Evidence GitHub](https://github.com/evidence-dev/evidence)
 - [Evidence Home Page](https://www.evidence.dev)
