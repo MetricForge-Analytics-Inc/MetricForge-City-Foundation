@@ -2,16 +2,16 @@ MetricForge-City-Foundation
 FCI (Future Cities Initiative) Challenge - KPI Generation/City Data OS
 
 
-# MetricForge Foundry
+# MetricForge City Foundation
 
-Data platform for MetricForge analytics — extraction through visualization.
+Municipal data infrastructure platform — treating data as foundational city infrastructure, from extraction through visualization.
 
 ## Architecture
 
 ```
 Prefect (Orchestration)
   │
-  ├─► DLT (Extract)       Zendesk/Salesforce/.../Source API → MotherDuck (normalized extract)
+  ├─► DLT (Extract)       ArcGIS Open Data / Municipal APIs → MotherDuck (normalized extract)
   │
   ├─► SQLMesh (Transform)  normalized → atomic → integration → details views
   │
@@ -25,9 +25,9 @@ Prefect (Orchestration)
 | Folder | Purpose |
 |---|---|
 | `Foundry-Orchestration/` | Prefect flow that runs extract → transform |
-| `Foundry-Pipelines/Support/zendesk/Data-Extract/` | DLT pipeline pulling Zendesk Support into MotherDuck |
-| `Foundry-Pipelines/Support/zendesk/Data-Pipeline/` | SQLMesh models, macros, audits, tests |
-| `Foundry-Semantic-Cubes/Support/` | Cube.js YAML definitions (extends chain) |
+| `Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract/` | DLT pipeline pulling Kitchener Open Data (ArcGIS Hub) into MotherDuck |
+| `Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Pipeline/` | SQLMesh models, macros, audits, tests for municipal data |
+| `Foundry-Semantic-Cubes/City/` | Cube.js YAML definitions for infrastructure, permits, water, wards |
 | `Foundry-Visualization/` | Evidence dashboards and source queries |
 | `.sqlmesh/` | SQLMesh gateway config (MotherDuck + Supabase state) |
 | `.devcontainer/` | Codespace setup — installs all Python/Node deps |
@@ -36,22 +36,22 @@ Prefect (Orchestration)
 ## Quick Start
 
 1. **Open in Codespace** — `postCreateCommand.sh` installs everything automatically.
-2. **Set environment variables** — `MOTHERDUCK_CODESPACE_TOKEN`, `POSTGRES_HOST/PORT/USER/PASSWORD/DATABASE`, `ZENDESK_*`.
-3. **Run the pipeline**:
+2. **Set environment variables** — `MOTHERDUCK_TOKEN`, `POSTGRES_HOST/PORT/USER/PASSWORD/DATABASE`.
+3. **Run the city data pipeline**:
 
 ```bash
-python Foundry-Orchestration/Support-Main.py
+python Foundry-Orchestration/City-Main.py
 ```
 
 Or run each step manually:
 
 ```bash
-# Extract
-python Foundry-Pipelines/Support/zendesk/Data-Extract/zendesk_pipeline.py
+# Extract (Kitchener Open Data)
+python Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract/opendata_pipeline.py
 
 # Transform
-sqlmesh -p Foundry-Pipelines/Support/zendesk/Data-Extract \
-        -p Foundry-Pipelines/Support/zendesk/Data-Pipeline \
+sqlmesh -p Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Extract \
+        -p Foundry-Pipelines/Infrastructure/OpenData-Kitchener/Data-Pipeline \
         plan prod --auto-apply --no-prompts
 
 # Visualize
@@ -60,9 +60,12 @@ cd Foundry-Visualization && npm run dev
 
 ## Key Design Decisions
 
-- **Time attribution** — Each Cube is bound to a specific datetime dimension so date filters always answer the right question. See [Foundry-Semantic-Cubes/README.md](Foundry-Semantic-Cubes/README.md).
+- **Time attribution** — Each Cube is bound to a specific datetime dimension so date filters always answer the right question. Infrastructure cubes use `record_time` (last edit/creation), permit cubes use `issued_date` or `application_date`.
 - **Table + View pairs** — SQLMesh models come in pairs: an `INCREMENTAL_BY_TIME_RANGE` table for performance and a `VIEW` for always-fresh reads. The Cube layer points at the view.
 - **Virtual environments** — SQLMesh uses virtual data environments so `prod` is a zero-copy promotion of validated snapshots.
+- **Ward as common integration key** — Geographic ward boundaries serve as the primary cross-departmental join key, enabling infrastructure × planning × utilities analysis without exposing individual-level data.
+- **Federated by design** — Each department's data lives in its own atomic model. Integration models perform the cross-departmental joins, preserving departmental autonomy while enabling holistic views.
+- **Privacy-first** — PII-containing datasets (addresses, property records) are flagged in the data catalog. Analytical views aggregate to ward/neighbourhood level by default.
 
 
 ## Problem Statement and Information

@@ -39,4 +39,4 @@ fi
 
 # for the sqlmesh bin
 export PATH="/app/.venv/bin:${PATH}"
-/app/.venv/bin/python /app/Foundry-Orchestration/Support-Main.py
+/app/.venv/bin/python /app/Foundry-Orchestration/City-Main.py

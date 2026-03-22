@@ -1,0 +1,100 @@
+# ─────────────────────────────────────────────────────────────────
+#  Infrastructure Assets Cube
+#  Time-attributed by: record_time (last edit / creation)
+#  Source view: Foundry.city.infrastructure_integration_view
+# ─────────────────────────────────────────────────────────────────
+
+cubes:
+  - name: infrastructure_assets
+    sql_table: Foundry.city.infrastructure_integration_view
+    description: >
+      Cross-departmental infrastructure view joining roads, water mains
+      and ward boundaries.  Time-attributed by record update time.
+
+    dimensions:
+      - name: road_id
+        sql: road_id
+        type: number
+        primary_key: true
+
+      - name: record_time
+        sql: record_time
+        type: time
+        description: "Primary time dimension — last edit or creation timestamp."
+
+      - name: road_name
+        sql: road_name
+        type: string
+
+      - name: road_classification
+        sql: road_classification
+        type: string
+
+      - name: surface_type
+        sql: surface_type
+        type: string
+
+      - name: surface_condition
+        sql: surface_condition
+        type: string
+
+      - name: number_of_lanes
+        sql: number_of_lanes
+        type: number
+
+      - name: speed_limit_kmh
+        sql: speed_limit_kmh
+        type: number
+
+      - name: road_ownership
+        sql: road_ownership
+        type: string
+
+      - name: maintenance_responsibility
+        sql: maintenance_responsibility
+        type: string
+
+      - name: ward
+        sql: ward
+        type: string
+
+      - name: ward_name
+        sql: ward_name
+        type: string
+
+      - name: councillor
+        sql: councillor
+        type: string
+
+    measures:
+      - name: total_road_segments
+        sql: road_id
+        type: count
+        description: "Total number of road segments."
+
+      - name: total_road_length_km
+        sql: "road_length_m / 1000.0"
+        type: sum
+        description: "Total road network length in km."
+
+      - name: avg_road_length_m
+        sql: road_length_m
+        type: avg
+
+      - name: total_water_mains_in_ward
+        sql: total_water_mains
+        type: max
+        description: "Water mains count in the road's ward (pre-aggregated)."
+
+      - name: oldest_water_infrastructure_year
+        sql: oldest_install_year
+        type: min
+        description: "Oldest water main install year in the ward."
+
+      - name: total_water_network_km
+        sql: "total_water_length_m / 1000.0"
+        type: max
+
+      - name: ward_population
+        sql: ward_population
+        type: max
