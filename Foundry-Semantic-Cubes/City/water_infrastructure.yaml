@@ -1,0 +1,76 @@
+# ─────────────────────────────────────────────────────────────────
+#  Water Infrastructure Cube
+#  Time-attributed by: record_time
+#  Source view: Foundry.city.water_mains_atomic_view
+# ─────────────────────────────────────────────────────────────────
+
+cubes:
+  - name: water_infrastructure
+    sql_table: Foundry.city.water_mains_atomic_view
+    description: >
+      Water distribution main pipes — age analysis, material
+      breakdown, and capacity indicators by ward.
+
+    dimensions:
+      - name: main_id
+        sql: main_id
+        type: number
+        primary_key: true
+
+      - name: record_time
+        sql: record_time
+        type: time
+
+      - name: pipe_material
+        sql: pipe_material
+        type: string
+
+      - name: pipe_status
+        sql: pipe_status
+        type: string
+
+      - name: pressure_zone
+        sql: pressure_zone
+        type: string
+
+      - name: ownership
+        sql: ownership
+        type: string
+
+      - name: ward
+        sql: ward
+        type: string
+
+      - name: install_year
+        sql: install_year
+        type: number
+
+      - name: diameter_mm
+        sql: diameter_mm
+        type: number
+
+    measures:
+      - name: total_mains
+        sql: main_id
+        type: count
+
+      - name: total_length_km
+        sql: "segment_length_m / 1000.0"
+        type: sum
+
+      - name: avg_diameter_mm
+        sql: diameter_mm
+        type: avg
+
+      - name: oldest_install_year
+        sql: install_year
+        type: min
+
+      - name: newest_install_year
+        sql: install_year
+        type: max
+
+      - name: avg_pipe_age_years
+        sql: "2026 - install_year"
+        type: avg
+        description: "Average age of water mains in years."

@@ -1,0 +1,56 @@
+# ─────────────────────────────────────────────────────────────────
+#  Ward Overview Cube
+#  Time-attributed by: record_time
+#  Source view: Foundry.city.boundaries_atomic_view
+# ─────────────────────────────────────────────────────────────────
+
+cubes:
+  - name: ward_overview
+    sql_table: Foundry.city.boundaries_atomic_view
+    description: >
+      Ward-level demographics and governance — population, area,
+      councillor assignments. Serves as the geographic join key
+      for cross-departmental analysis.
+
+    dimensions:
+      - name: ward_id
+        sql: ward_id
+        type: number
+        primary_key: true
+
+      - name: record_time
+        sql: record_time
+        type: time
+
+      - name: ward_number
+        sql: ward_number
+        type: string
+
+      - name: ward_name
+        sql: ward_name
+        type: string
+
+      - name: councillor
+        sql: councillor
+        type: string
+
+    measures:
+      - name: total_wards
+        sql: ward_id
+        type: count
+
+      - name: total_population
+        sql: population
+        type: sum
+
+      - name: total_area_sq_km
+        sql: area_sq_km
+        type: sum
+
+      - name: avg_population_per_ward
+        sql: population
+        type: avg
+
+      - name: population_density_per_sq_km
+        sql: "population / NULLIF(area_sq_km, 0)"
+        type: avg

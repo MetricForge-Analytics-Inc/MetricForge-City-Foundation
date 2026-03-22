@@ -1,0 +1,123 @@
+# ─────────────────────────────────────────────────────────────────
+#  Development Permits Cube
+#  Time-attributed by: record_time (issued or application date)
+#  Source view: Foundry.city.development_details_view
+# ─────────────────────────────────────────────────────────────────
+
+cubes:
+  - name: development_permits
+    sql_table: Foundry.city.development_details_view
+    description: >
+      Building permits enriched with ward demographics and infrastructure
+      capacity metrics.  Enables housing-vs-infrastructure analysis.
+
+    dimensions:
+      - name: permit_id
+        sql: permit_id
+        type: number
+        primary_key: true
+
+      - name: record_time
+        sql: record_time
+        type: time
+        description: "Primary time dimension — issued date or application date."
+
+      - name: application_date
+        sql: application_date
+        type: time
+
+      - name: issued_date
+        sql: issued_date
+        type: time
+
+      - name: completed_date
+        sql: completed_date
+        type: time
+
+      - name: permit_number
+        sql: permit_number
+        type: string
+
+      - name: permit_type
+        sql: permit_type
+        type: string
+
+      - name: permit_status
+        sql: permit_status
+        type: string
+
+      - name: work_type
+        sql: work_type
+        type: string
+
+      - name: permit_description
+        sql: permit_description
+        type: string
+
+      - name: address
+        sql: address
+        type: string
+
+      - name: ward
+        sql: ward
+        type: string
+
+      - name: ward_name
+        sql: ward_name
+        type: string
+
+      - name: neighbourhood
+        sql: neighbourhood
+        type: string
+
+      - name: councillor
+        sql: councillor
+        type: string
+
+    measures:
+      - name: total_permits
+        sql: permit_id
+        type: count
+
+      - name: total_estimated_value
+        sql: estimated_value
+        type: sum
+
+      - name: avg_estimated_value
+        sql: estimated_value
+        type: avg
+
+      - name: total_actual_value
+        sql: actual_value
+        type: sum
+
+      - name: residential_permits
+        sql: "CASE WHEN permit_type ILIKE '%residential%' THEN 1 ELSE 0 END"
+        type: sum
+
+      - name: commercial_permits
+        sql: "CASE WHEN permit_type ILIKE '%commercial%' THEN 1 ELSE 0 END"
+        type: sum
+
+      - name: completed_permits
+        sql: "CASE WHEN permit_status ILIKE '%complete%' THEN 1 ELSE 0 END"
+        type: sum
+
+      - name: ward_population
+        sql: ward_population
+        type: max
+
+      - name: ward_water_mains
+        sql: ward_water_mains
+        type: max
+        description: "Number of water mains in the permit's ward — infrastructure capacity proxy."
+
+      - name: permits_per_ward
+        sql: total_permits_in_ward
+        type: max
+        description: "Total permits filed in the same ward (pre-aggregated)."
+
+      - name: development_intensity
+        sql: total_estimated_value_in_ward
+        type: max
+        description: "Total estimated value of all permits in the ward."

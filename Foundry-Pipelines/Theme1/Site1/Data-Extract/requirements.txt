@@ -1,1 +1,0 @@
-dlt[motherduck,parquet]>=1.0.0

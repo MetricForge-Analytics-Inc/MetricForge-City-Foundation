@@ -1,5 +1,5 @@
 ---
-title: Support Analytics Dashboard
+title: City Data OS — Overview
 ---
 
 <!-- ═══════════════════════════════════════════════════════════════════
@@ -10,258 +10,147 @@ title: Support Analytics Dashboard
   <div style="position: absolute; top: -40px; right: -40px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(14,165,233,0.35) 0%, transparent 70%); border-radius: 50%;"></div>
   <div style="position: absolute; bottom: -30px; left: 30%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%); border-radius: 50%;"></div>
   <div style="position: relative; z-index: 1;">
-    <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em; color: #7dd3fc; margin-bottom: 0.5rem;">MetricForge Foundry</div>
-    <h1 style="margin: 0 0 0.4rem; font-size: 2.4rem; font-weight: 800; line-height: 1.1;">Support Analytics</h1>
-    <p style="margin: 0; font-size: 1.05rem; color: #cbd5e1; max-width: 600px;">Real-time insights into ticket lifecycle, agent efficiency, customer satisfaction, and operational health — powered by your Cube semantic layer.</p>
+    <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em; color: #7dd3fc; margin-bottom: 0.5rem;">MetricForge City Foundation</div>
+    <h1 style="margin: 0 0 0.4rem; font-size: 2.4rem; font-weight: 800; line-height: 1.1;">City Data OS</h1>
+    <p style="margin: 0; font-size: 1.05rem; color: #cbd5e1; max-width: 600px;">Municipal data infrastructure — cross-departmental insights into roads, water systems, building permits, and ward demographics. Powered by the Cube semantic layer.</p>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     TOP-LINE KPIs  (from Cube.js pre-computed measures)
+     TOP-LINE KPIs
      ═══════════════════════════════════════════════════════════════════ -->
 
 ```sql kpis
-SELECT * FROM cube_kpis
+SELECT * FROM city_kpis
 ```
 
-<BigValue data={kpis} value='total_created'   title='Total Cases Created' fmt='#,##0' />
-<BigValue data={kpis} value='total_solved'     title='Solved'              fmt='#,##0' comparison='total_created' comparisonTitle='of Total Created' comparisonFmt='#,##0' />
-<BigValue data={kpis} value='avg_first_reply_min' title='Avg First Reply'  fmt='#,##0.0" min"' />
-<BigValue data={kpis} value='satisfaction_score'   title='CSAT Score'      fmt='0.0%' />
-<BigValue data={kpis} value='one_touch_pct'    title='One-Touch Resolution' fmt='0.0%' />
-<BigValue data={kpis} value='reopened'         title='Reopened'            fmt='#,##0' />
+<BigValue data={kpis} value='total_road_segments'  title='Road Segments'       fmt='#,##0' />
+<BigValue data={kpis} value='total_road_length_km'  title='Road Network (km)'  fmt='#,##0.0' />
+<BigValue data={kpis} value='total_water_mains'     title='Water Mains'        fmt='#,##0' />
+<BigValue data={kpis} value='total_water_network_km' title='Water Network (km)' fmt='#,##0.0' />
+<BigValue data={kpis} value='total_permits'          title='Building Permits'   fmt='#,##0' />
+<BigValue data={kpis} value='total_population'       title='Population'         fmt='#,##0' />
 
 ---
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     VOLUME HEADLINES  (origin & incident mix)
+     INFRASTRUCTURE HEALTH SNAPSHOT
      ═══════════════════════════════════════════════════════════════════ -->
 
-## Ticket Origins & Incident Mix
+## Infrastructure Health
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <BigValue data={kpis} value='end_user_created'  title='End-User Created' fmt='#,##0' />
-  <BigValue data={kpis} value='agent_created'      title='Agent Created'    fmt='#,##0' />
-  <BigValue data={kpis} value='incidents'          title='Incidents'        fmt='#,##0' />
-  <BigValue data={kpis} value='problems'           title='Problems'         fmt='#,##0' />
-  <BigValue data={kpis} value='reassigned'         title='Reassigned'       fmt='#,##0' />
-  <BigValue data={kpis} value='total_replies'      title='Total Replies'    fmt='#,##0' />
+  <BigValue data={kpis} value='avg_pipe_age_years'          title='Avg Water Pipe Age'      fmt='#,##0.0" yrs"' />
+  <BigValue data={kpis} value='oldest_water_install_year'   title='Oldest Pipe Installed'    fmt='####' />
+  <BigValue data={kpis} value='total_wards'                 title='Wards'                   fmt='#,##0' />
+  <BigValue data={kpis} value='total_area_sq_km'            title='Total Area (km²)'        fmt='#,##0.0' />
+  <BigValue data={kpis} value='residential_permits'         title='Residential Permits'     fmt='#,##0' />
+  <BigValue data={kpis} value='commercial_permits'          title='Commercial Permits'      fmt='#,##0' />
 </div>
 
 ---
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     DAILY TREND — Created vs Solved sparkline
+     WARD-LEVEL OVERVIEW
      ═══════════════════════════════════════════════════════════════════ -->
 
-## Daily Case Flow
+## Ward-Level Infrastructure
 
-```sql daily
-SELECT * FROM cube_daily_trend
-```
-
-<AreaChart
-  data={daily}
-  x='date'
-  y={['created','solved']}
-  title='Cases Created vs Solved Over Time'
-  yAxisTitle='Cases'
-  colorPalette={['#6366f1','#22c55e']}
-  fillOpacity=0.15
-/>
-
----
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     FIRST REPLY TIME TREND
-     ═══════════════════════════════════════════════════════════════════ -->
-
-## First Reply Time Trend
-
-<LineChart
-  data={daily}
-  x='date'
-  y='avg_reply_min'
-  title='Avg First Reply Time (Business Minutes)'
-  yAxisTitle='Minutes'
-  colorPalette={['#f59e0b']}
-/>
-
----
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     STATUS BREAKDOWN  (from Cube measures)
-     ═══════════════════════════════════════════════════════════════════ -->
-
-## Case Status Breakdown
-
-```sql by_status
-SELECT * FROM cube_by_status
+```sql by_ward
+SELECT * FROM cube_by_ward
 ```
 
 <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: start;">
 
 <BarChart
-  data={by_status}
-  x='status'
-  y='total'
-  title='Volume by Status'
-  colorPalette={['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444','#64748b']}
-/>
-
-<DataTable
-  data={by_status}
-  rows=10
->
-  <Column id='status' title='Status' />
-  <Column id='total' title='Cases' fmt='#,##0' />
-  <Column id='avg_reply_min' title='Avg Reply (min)' fmt='#,##0.0' />
-  <Column id='sat_score' title='CSAT' fmt='0.0%' />
-  <Column id='reopened' title='Reopened' fmt='#,##0' />
-</DataTable>
-
-</div>
-
----
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     PRIORITY MIX  (from Cube measures)
-     ═══════════════════════════════════════════════════════════════════ -->
-
-## Priority Performance
-
-```sql by_priority
-SELECT * FROM cube_by_priority
-```
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-
-<BarChart
-  data={by_priority}
-  x='priority'
-  y='total'
-  title='Volume by Priority'
+  data={by_ward}
+  x='ward_name'
+  y='road_segments'
+  title='Road Segments by Ward'
   swapXY={true}
-  colorPalette={['#dc2626','#ea580c','#ca8a04','#65a30d','#64748b']}
-/>
-
-<BarChart
-  data={by_priority}
-  x='priority'
-  y='avg_reply_min'
-  title='Avg First Reply by Priority (min)'
-  swapXY={true}
-  colorPalette={['#0ea5e9','#38bdf8','#7dd3fc','#bae6fd','#e0f2fe']}
-/>
-
-</div>
-
-<DataTable
-  data={by_priority}
-  rows=10
->
-  <Column id='priority' title='Priority' />
-  <Column id='total' title='Cases' fmt='#,##0' />
-  <Column id='solved' title='Solved' fmt='#,##0' />
-  <Column id='avg_reply_min' title='Avg Reply (min)' fmt='#,##0.0' />
-  <Column id='sat_score' title='CSAT' fmt='0.0%' />
-  <Column id='one_touch_pct' title='One-Touch %' fmt='0.0%' />
-  <Column id='reopened' title='Reopened' fmt='#,##0' />
-</DataTable>
-
----
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     CHANNEL ANALYSIS  (from Cube measures)
-     ═══════════════════════════════════════════════════════════════════ -->
-
-## Channel Analysis
-
-```sql by_channel
-SELECT * FROM cube_by_channel
-```
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-
-<BarChart
-  data={by_channel}
-  x='channel'
-  y='total'
-  title='Volume by Channel'
   colorPalette={['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444','#a855f7']}
 />
 
-<BarChart
-  data={by_channel}
-  x='channel'
-  y='avg_reply_min'
-  title='Avg First Reply by Channel (min)'
-  colorPalette={['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fef3c7','#fffbeb']}
-/>
-
-</div>
-
 <DataTable
-  data={by_channel}
-  rows=10
+  data={by_ward}
+  rows=15
 >
-  <Column id='channel' title='Channel' />
-  <Column id='total' title='Cases' fmt='#,##0' />
-  <Column id='solved' title='Solved' fmt='#,##0' />
-  <Column id='avg_reply_min' title='Avg Reply (min)' fmt='#,##0.0' />
-  <Column id='sat_score' title='CSAT' fmt='0.0%' />
-  <Column id='one_touch_pct' title='One-Touch %' fmt='0.0%' />
+  <Column id='ward_name' title='Ward' />
+  <Column id='road_segments' title='Roads' fmt='#,##0' />
+  <Column id='road_length_km' title='Road km' fmt='#,##0.0' />
+  <Column id='water_mains' title='Water Mains' fmt='#,##0' />
+  <Column id='population' title='Population' fmt='#,##0' />
 </DataTable>
 
----
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     SATISFACTION & RESOLUTION QUALITY
-     ═══════════════════════════════════════════════════════════════════ -->
-
-## Satisfaction & Resolution Quality
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <BigValue data={kpis} value='good_sat'       title='Good Ratings'      fmt='#,##0' />
-  <BigValue data={kpis} value='bad_sat'        title='Bad Ratings'       fmt='#,##0' />
-  <BigValue data={kpis} value='rated_sat'      title='Rated Tickets'     fmt='#,##0' />
-  <BigValue data={kpis} value='surveyed_sat'   title='Surveyed Tickets'  fmt='#,##0' />
-  <BigValue data={kpis} value='one_touch_pct'  title='One-Touch %'       fmt='0.0%' />
-  <BigValue data={kpis} value='multi_touch_pct' title='Multi-Touch %'    fmt='0.0%' />
 </div>
 
-```sql touch_data
-SELECT 'One-Touch' AS resolution_type,  one_touch  AS tickets FROM cube_kpis
-UNION ALL
-SELECT 'Two-Touch',                     two_touch           FROM cube_kpis
-UNION ALL
-SELECT 'Multi-Touch',                   multi_touch         FROM cube_kpis
+---
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     ROAD CONDITION
+     ═══════════════════════════════════════════════════════════════════ -->
+
+## Road Condition Breakdown
+
+```sql road_condition
+SELECT * FROM cube_road_condition
 ```
 
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+
 <BarChart
-  data={touch_data}
-  x='resolution_type'
-  y='tickets'
-  title='Resolution Effort Distribution'
-  colorPalette={['#22c55e','#f59e0b','#ef4444']}
+  data={road_condition}
+  x='condition'
+  y='segments'
+  title='Segments by Condition'
+  colorPalette={['#22c55e','#84cc16','#eab308','#f97316','#ef4444','#64748b']}
 />
+
+<BarChart
+  data={road_condition}
+  x='classification'
+  y='length_km'
+  title='Road Length by Classification (km)'
+  swapXY={true}
+  colorPalette={['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444']}
+/>
+
+</div>
 
 ---
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     REOPENED & REASSIGNED TREND
+     PERMITS OVERVIEW
      ═══════════════════════════════════════════════════════════════════ -->
 
-## Operational Health — Reopens & Reassignments
+## Development Permits
 
-<LineChart
-  data={daily}
-  x='date'
-  y={['reopened','reassigned']}
-  title='Reopened & Reassigned Cases Over Time'
-  yAxisTitle='Cases'
-  colorPalette={['#ef4444','#a855f7']}
+```sql permits_type
+SELECT * FROM cube_permits_by_type
+```
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+
+<BarChart
+  data={permits_type}
+  x='permit_type'
+  y='total'
+  title='Permits by Type'
+  swapXY={true}
+  colorPalette={['#6366f1','#0ea5e9','#22c55e','#f59e0b','#ef4444','#a855f7']}
 />
+
+<DataTable
+  data={permits_type}
+  rows=15
+>
+  <Column id='permit_type' title='Type' />
+  <Column id='permit_status' title='Status' />
+  <Column id='total' title='Permits' fmt='#,##0' />
+  <Column id='estimated_value' title='Est. Value' fmt='$#,##0' />
+</DataTable>
+
+</div>
 
 ---
 
@@ -273,40 +162,40 @@ SELECT 'Multi-Touch',                   multi_touch         FROM cube_kpis
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-top: 0.5rem;">
 
-  <a href="/trends" style="text-decoration: none; color: inherit;">
-    <div style="background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.15s;">
-      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">📈</div>
-      <div style="font-weight: 700; font-size: 1.1rem; color: #4c1d95;">Trends & Time Series</div>
-      <div style="font-size: 0.9rem; color: #6d28d9; margin-top: 0.25rem;">Daily, weekly & monthly patterns</div>
-    </div>
-  </a>
-
-  <a href="/performance" style="text-decoration: none; color: inherit;">
+  <a href="/infrastructure" style="text-decoration: none; color: inherit;">
     <div style="background: linear-gradient(135deg, #ecfdf5 0%, #6ee7b7 100%); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.15s;">
-      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">⚡</div>
-      <div style="font-weight: 700; font-size: 1.1rem; color: #064e3b;">Team Performance</div>
-      <div style="font-size: 0.9rem; color: #047857; margin-top: 0.25rem;">SLAs, response times & workload</div>
+      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">🏗️</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: #064e3b;">Infrastructure Assets</div>
+      <div style="font-size: 0.9rem; color: #047857; margin-top: 0.25rem;">Roads, bridges, water & sewer networks</div>
     </div>
   </a>
 
-  <a href="/satisfaction" style="text-decoration: none; color: inherit;">
-    <div style="background: linear-gradient(135deg, #fefce8 0%, #fde047 100%); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.15s;">
-      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">⭐</div>
-      <div style="font-weight: 700; font-size: 1.1rem; color: #713f12;">Customer Satisfaction</div>
-      <div style="font-size: 0.9rem; color: #a16207; margin-top: 0.25rem;">CSAT, surveys & sentiment</div>
+  <a href="/development" style="text-decoration: none; color: inherit;">
+    <div style="background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.15s;">
+      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">🏠</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: #4c1d95;">Development & Housing</div>
+      <div style="font-size: 0.9rem; color: #6d28d9; margin-top: 0.25rem;">Permits, zoning, capacity analysis</div>
     </div>
   </a>
 
-  <a href="/cases" style="text-decoration: none; color: inherit;">
+  <a href="/water" style="text-decoration: none; color: inherit;">
     <div style="background: linear-gradient(135deg, #eff6ff 0%, #93c5fd 100%); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.15s;">
-      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">🔍</div>
-      <div style="font-weight: 700; font-size: 1.1rem; color: #1e3a8a;">Case Explorer</div>
-      <div style="font-size: 0.9rem; color: #1d4ed8; margin-top: 0.25rem;">Search, filter & drill into details</div>
+      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">💧</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: #1e3a8a;">Water Systems</div>
+      <div style="font-size: 0.9rem; color: #1d4ed8; margin-top: 0.25rem;">Pipe age, material, capacity by ward</div>
+    </div>
+  </a>
+
+  <a href="/governance" style="text-decoration: none; color: inherit;">
+    <div style="background: linear-gradient(135deg, #fefce8 0%, #fde047 100%); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.15s;">
+      <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">📊</div>
+      <div style="font-weight: 700; font-size: 1.1rem; color: #713f12;">Data Governance</div>
+      <div style="font-size: 0.9rem; color: #a16207; margin-top: 0.25rem;">Quality, catalog, access & lineage</div>
     </div>
   </a>
 
 </div>
 
 <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; margin-top: 3rem; padding-bottom: 1rem;">
-  MetricForge Foundry &middot; Support Analytics &middot; Powered by Cube + Evidence
+  MetricForge City Foundation &middot; City Data OS &middot; Powered by Cube + Evidence
 </div>

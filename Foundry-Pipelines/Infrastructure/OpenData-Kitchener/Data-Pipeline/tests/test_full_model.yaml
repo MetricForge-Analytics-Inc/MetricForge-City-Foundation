@@ -1,0 +1,38 @@
+test_roads_model:
+  model: Foundry.city.roads_atomic_view
+  rows:
+    - road_id: 1
+      road_name: "King St"
+      road_classification: "Arterial"
+      surface_type: "Asphalt"
+      surface_condition: "Good"
+      number_of_lanes: 4
+      speed_limit_kmh: 50
+      segment_length_m: 250.0
+      ownership: "City"
+      maintenance_responsibility: "City"
+      ward: "1"
+      created_time: "2020-01-01T00:00:00"
+      last_updated_time: "2024-06-15T00:00:00"
+      record_time: "2024-06-15T00:00:00"
+
+test_permits_model:
+  model: Foundry.city.permits_atomic_view
+  rows:
+    - permit_id: 1
+      permit_number: "BP-2024-001"
+      permit_type: "Residential"
+      permit_status: "Issued"
+      work_type: "New Construction"
+      permit_description: "Single family dwelling"
+      application_date: "2024-01-15T00:00:00"
+      issued_date: "2024-03-01T00:00:00"
+      completed_date: null
+      estimated_value: 450000.0
+      actual_value: null
+      address: "123 King St W"
+      ward: "1"
+      neighbourhood: "Downtown"
+      created_time: "2024-01-15T00:00:00"
+      last_updated_time: "2024-03-01T00:00:00"
+      record_time: "2024-03-01T00:00:00"
