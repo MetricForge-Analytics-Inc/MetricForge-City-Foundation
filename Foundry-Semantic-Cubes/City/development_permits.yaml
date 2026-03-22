@@ -30,10 +30,6 @@ cubes:
         sql: issued_date
         type: time
 
-      - name: completed_date
-        sql: completed_date
-        type: time
-
       - name: permit_number
         sql: permit_number
         type: string
@@ -50,6 +46,10 @@ cubes:
         sql: work_type
         type: string
 
+      - name: sub_work_type
+        sql: sub_work_type
+        type: string
+
       - name: permit_description
         sql: permit_description
         type: string
@@ -58,37 +58,29 @@ cubes:
         sql: address
         type: string
 
-      - name: ward
-        sql: ward
-        type: string
-
-      - name: ward_name
-        sql: ward_name
-        type: string
-
-      - name: neighbourhood
-        sql: neighbourhood
-        type: string
-
-      - name: councillor
-        sql: councillor
-        type: string
+      - name: issue_year
+        sql: issue_year
+        type: number
 
     measures:
       - name: total_permits
         sql: permit_id
         type: count
 
-      - name: total_estimated_value
-        sql: estimated_value
+      - name: total_construction_value
+        sql: construction_value
         type: sum
 
-      - name: avg_estimated_value
-        sql: estimated_value
+      - name: avg_construction_value
+        sql: construction_value
         type: avg
 
-      - name: total_actual_value
-        sql: actual_value
+      - name: total_units_created
+        sql: units_created
+        type: sum
+
+      - name: total_units
+        sql: total_units
         type: sum
 
       - name: residential_permits
@@ -103,21 +95,17 @@ cubes:
         sql: "CASE WHEN permit_status ILIKE '%complete%' THEN 1 ELSE 0 END"
         type: sum
 
-      - name: ward_population
-        sql: ward_population
+      - name: year_permits_count
+        sql: total_permits
         type: max
+        description: "Total permits in the same issue year (pre-aggregated)."
 
-      - name: ward_water_mains
-        sql: ward_water_mains
+      - name: year_construction_value
+        sql: total_construction_value
         type: max
-        description: "Number of water mains in the permit's ward — infrastructure capacity proxy."
+        description: "Total construction value in the same issue year."
 
-      - name: permits_per_ward
-        sql: total_permits_in_ward
+      - name: year_units_created
+        sql: total_units_created
         type: max
-        description: "Total permits filed in the same ward (pre-aggregated)."
-
-      - name: development_intensity
-        sql: total_estimated_value_in_ward
-        type: max
-        description: "Total estimated value of all permits in the ward."
+        description: "Total units created in the same issue year."

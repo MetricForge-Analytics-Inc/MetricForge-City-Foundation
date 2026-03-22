@@ -43,14 +43,18 @@ cubes:
         sql: population
         type: sum
 
-      - name: total_area_sq_km
-        sql: area_sq_km
-        type: sum
-
       - name: avg_population_per_ward
         sql: population
         type: avg
 
-      - name: population_density_per_sq_km
-        sql: "population / NULLIF(area_sq_km, 0)"
+      - name: total_residential_households
+        sql: residential_households
+        type: sum
+
+      - name: total_voters
+        sql: voters
+        type: sum
+
+      - name: avg_voters_per_ward
+        sql: voters
         type: avg

@@ -21,6 +21,10 @@ cubes:
         sql: record_time
         type: time
 
+      - name: install_date
+        sql: install_date
+        type: time
+
       - name: pipe_material
         sql: pipe_material
         type: string
@@ -37,16 +41,24 @@ cubes:
         sql: ownership
         type: string
 
-      - name: ward
-        sql: ward
+      - name: category
+        sql: category
         type: string
 
-      - name: install_year
-        sql: install_year
+      - name: lined
+        sql: lined
+        type: string
+
+      - name: pipe_size
+        sql: pipe_size
         type: number
 
-      - name: diameter_mm
-        sql: diameter_mm
+      - name: condition_score
+        sql: condition_score
+        type: number
+
+      - name: criticality
+        sql: criticality
         type: number
 
     measures:
@@ -54,23 +66,27 @@ cubes:
         sql: main_id
         type: count
 
-      - name: total_length_km
-        sql: "segment_length_m / 1000.0"
-        type: sum
-
-      - name: avg_diameter_mm
-        sql: diameter_mm
+      - name: avg_pipe_size
+        sql: pipe_size
         type: avg
 
-      - name: oldest_install_year
-        sql: install_year
+      - name: avg_condition_score
+        sql: condition_score
+        type: avg
+
+      - name: avg_criticality
+        sql: criticality
+        type: avg
+
+      - name: oldest_install_date
+        sql: install_date
         type: min
 
-      - name: newest_install_year
-        sql: install_year
+      - name: newest_install_date
+        sql: install_date
         type: max
 
       - name: avg_pipe_age_years
-        sql: "2026 - install_year"
+        sql: "date_diff('year', install_date, current_date)"
         type: avg
         description: "Average age of water mains in years."

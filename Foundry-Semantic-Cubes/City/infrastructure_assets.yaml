@@ -34,8 +34,12 @@ cubes:
         sql: surface_type
         type: string
 
-      - name: surface_condition
-        sql: surface_condition
+      - name: category
+        sql: category
+        type: string
+
+      - name: subcategory
+        sql: subcategory
         type: string
 
       - name: number_of_lanes
@@ -46,17 +50,21 @@ cubes:
         sql: speed_limit_kmh
         type: number
 
+      - name: pavement_width_m
+        sql: pavement_width_m
+        type: number
+
       - name: road_ownership
         sql: road_ownership
         type: string
 
-      - name: maintenance_responsibility
-        sql: maintenance_responsibility
+      - name: road_status
+        sql: road_status
         type: string
 
-      - name: ward
-        sql: ward
-        type: string
+      - name: ward_id
+        sql: ward_id
+        type: number
 
       - name: ward_name
         sql: ward_name
@@ -72,29 +80,20 @@ cubes:
         type: count
         description: "Total number of road segments."
 
-      - name: total_road_length_km
-        sql: "road_length_m / 1000.0"
-        type: sum
-        description: "Total road network length in km."
-
-      - name: avg_road_length_m
-        sql: road_length_m
-        type: avg
-
       - name: total_water_mains_in_ward
         sql: total_water_mains
         type: max
-        description: "Water mains count in the road's ward (pre-aggregated)."
+        description: "Water mains count (pre-aggregated across all wards)."
 
-      - name: oldest_water_infrastructure_year
-        sql: oldest_install_year
-        type: min
-        description: "Oldest water main install year in the ward."
-
-      - name: total_water_network_km
-        sql: "total_water_length_m / 1000.0"
+      - name: distinct_pipe_materials
+        sql: distinct_materials
         type: max
+        description: "Number of distinct pipe materials in the water network."
 
       - name: ward_population
         sql: ward_population
+        type: max
+
+      - name: ward_households
+        sql: ward_households
         type: max
